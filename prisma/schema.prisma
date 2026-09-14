@@ -6,3 +6,33 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id String @id @default(cuid())
+
+  imageUrl  String?
+  firstName String?
+  lastName  String?
+
+  emailAddress String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  credits Credits?
+
+  @@map("users")
+}
+
+model Credits {
+  id String @id @default(cuid())
+
+  credits Int @default(150)
+
+  updatedAt DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("credits")
+}
