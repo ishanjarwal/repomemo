@@ -12,8 +12,15 @@ export async function POST(req: NextRequest) {
     console.log("Webhook payload:", evt.data);
 
     if (evt.type === "user.created") {
-      const user = await prisma.user.create({
-        data: {
+      const user = await prisma.user.upsert({
+        where: { clerkUserId: evt.data.id },
+        update: {
+          firstName: evt.data.first_name,
+          lastName: evt.data.last_name,
+          imageUrl: evt.data.image_url,
+        },
+        create: {
+          clerkUserId: evt.data.id,
           emailAddress: evt.data.email_addresses[0].email_address,
           firstName: evt.data.first_name,
           lastName: evt.data.last_name,
