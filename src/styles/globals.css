@@ -164,11 +164,12 @@
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
 
-  --font-heading: var(--font-sans);
-  --font-paragraph: var(--font-inter-sans);
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --font-heading: var(--font-plus-jakarta-sans);
+  --font-paragraph: var(--font-inter-sans);
 }
 
 @layer base {

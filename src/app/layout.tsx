@@ -1,10 +1,10 @@
-import "~/styles/globals.css";
+import "@/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 
-import { cn } from "~/lib/utils";
-import { TRPCReactProvider } from "~/trpc/react";
+import { cn } from "@/lib/utils";
+import { TRPCReactProvider } from "@/lib/trpc/react";
 
 import { ClerkProvider } from "@clerk/nextjs";
 
@@ -29,12 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn(plusJakartaSans.variable, inter.variable)}>
       <body>
-        <ClerkProvider
-          signInUrl="/login"
-          signUpUrl="/sign-up"
-          signInFallbackRedirectUrl="/dashboard"
-          signUpFallbackRedirectUrl="/dashboard"
-        >
+        <ClerkProvider>
           <TRPCReactProvider>{children}</TRPCReactProvider>
         </ClerkProvider>
       </body>
