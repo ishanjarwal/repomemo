@@ -1,6 +1,6 @@
 import ThemeToggleButton from "@/components/common/ThemeToggleButton";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 
@@ -15,6 +15,7 @@ export default async function DashboardLayout({
       <main className="m-2 w-full">
         <div className="bg-sidebar border-sidebar-border flex w-full items-center justify-between rounded-md border px-4 py-2 shadow">
           {/* <SearchBar/> */}
+          <SidebarTrigger />
           <div className="ml-auto"></div>
           <div className="flex items-center space-x-2">
             <ThemeToggleButton />

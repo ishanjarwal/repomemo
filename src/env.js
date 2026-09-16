@@ -25,6 +25,9 @@ export const env = createEnv({
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
     NEXT_PUBLIC_ORIGIN: z.url(),
 
+    NEXT_PUBLIC_APP_NAME: z.string(),
+    NEXT_PUBLIC_APP_VERSION: z.string(),
+
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
 
     NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string(),
@@ -40,6 +43,9 @@ export const env = createEnv({
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
     DATABASE_URL: process.env.DATABASE_URL,
+
+    NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+    NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     CLERK_WEBHOOK_SIGNING_SECRET: process.env.CLERK_WEBHOOK_SIGNING_SECRET,
     NEXT_PUBLIC_ORIGIN: process.env.NEXT_PUBLIC_ORIGIN,

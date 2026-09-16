@@ -48,3 +48,7 @@ yarn-error.log*
 
 # Keep the custom generated Prisma Client out of version control
 generated/prisma
+
+
+# don't commit assets
+/public

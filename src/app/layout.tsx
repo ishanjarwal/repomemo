@@ -8,6 +8,7 @@ import { TRPCReactProvider } from "@/lib/trpc/react";
 
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "next-themes";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
   title: "RepoMemo",
@@ -31,9 +32,11 @@ export default function RootLayout({
     <html lang="en" className={cn(plusJakartaSans.variable, inter.variable)}>
       <body>
         <ThemeProvider attribute={"class"} enableSystem={false}>
-          <ClerkProvider>
-            <TRPCReactProvider>{children}</TRPCReactProvider>
-          </ClerkProvider>
+          <TooltipProvider>
+            <ClerkProvider>
+              <TRPCReactProvider>{children}</TRPCReactProvider>
+            </ClerkProvider>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
