@@ -21,7 +21,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  credits Credits?
+  credits  Credits?
+  projects Project[]
 
   @@map("users")
 }
@@ -37,4 +38,22 @@ model Credits {
   user   User   @relation(fields: [userId], references: [id])
 
   @@map("credits")
+}
+
+model Project {
+  id String @id @default(cuid())
+
+  name                  String
+  github_url            String
+  personal_access_token String?
+  isPrivate             Boolean @default(false)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("projects")
 }

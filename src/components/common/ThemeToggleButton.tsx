@@ -1,28 +1,47 @@
 "use client";
 
-import { useTheme } from "next-themes";
-import { Button } from "../ui/button";
 import { Moon, Sun } from "lucide-react";
-import { useCallback } from "react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+import { Button } from "../ui/button";
 
 const ThemeToggleButton = () => {
   const { setTheme, theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  const onThemeChange = useCallback(() => {
-    if (theme === "dark") {
-      setTheme("light");
-    } else {
-      setTheme("dark");
-    }
-  }, [theme]);
+  useEffect(() => {
+    // Wait until the component has mounted so server/client HTML matches.
+    setMounted(true);
+  }, []);
+
+  const onThemeChange = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
+  // Don't render theme-dependent UI during SSR.
+  if (!mounted) {
+    return (
+      <div>
+        <Button
+          className="rounded-full"
+          variant="ghost"
+          size="icon"
+          aria-label="Toggle theme"
+        >
+          <Moon />
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div>
       <Button
         className="rounded-full"
         onClick={onThemeChange}
-        variant={"ghost"}
-        size={"icon"}
+        variant="ghost"
+        size="icon"
+        aria-label="Toggle theme"
       >
         {theme === "dark" ? <Sun /> : <Moon />}
       </Button>

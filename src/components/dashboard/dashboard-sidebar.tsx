@@ -6,16 +6,18 @@ import {
   CreditCard,
   Folder,
   LayoutDashboard,
+  LogOut,
   MessageCircleQuestion,
   Plus,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Separator } from "../ui/separator";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -23,10 +25,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
   useSidebar,
 } from "../ui/sidebar";
-import { Separator } from "../ui/separator";
+import { Button } from "../ui/button";
+import { SignOutButton } from "@clerk/nextjs";
+import ProjectListSidebar from "@/features/project/components/project-list-sidebar";
 
 const APPLICATION_MENU = [
   {
@@ -48,7 +51,6 @@ const APPLICATION_MENU = [
 
 const DashboardSidebar = () => {
   const pathname = usePathname();
-  const { theme } = useTheme();
   const { open } = useSidebar();
 
   return (
@@ -57,13 +59,23 @@ const DashboardSidebar = () => {
         <div className="flex items-center justify-between space-x-1 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:space-x-0">
           <div className="flex items-center justify-start space-x-2 group-data-[state=collapsed]:space-x-0">
             <div className="size-8 shrink-0 overflow-hidden rounded-md border-2">
-              <Image
-                width={128}
-                height={128}
-                className="object-cover object-center"
-                src={theme === "dark" ? "/logo_dark.png" : "/logo_light.png"}
-                alt={env.NEXT_PUBLIC_APP_NAME}
-              />
+              <div>
+                <Image
+                  src="/logo_light.png"
+                  alt="RepoMemo"
+                  width={128}
+                  height={128}
+                  className="block object-cover object-center dark:hidden"
+                />
+
+                <Image
+                  src="/logo_dark.png"
+                  alt="RepoMemo"
+                  width={128}
+                  height={128}
+                  className="hidden object-cover object-center dark:block"
+                />
+              </div>
             </div>
             <div className="flex flex-col group-data-[state=collapsed]:hidden">
               <h1 className="truncate font-semibold">
@@ -108,22 +120,15 @@ const DashboardSidebar = () => {
           <SidebarGroupLabel>Projects</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href={""}>
-                    <Folder />
-                    <span>Project 1</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <ProjectListSidebar />
 
               <SidebarMenuItem className="mt-4">
                 <SidebarMenuButton
-                  variant={"outline"}
+                  variant={"default"}
                   asChild
-                  className="justify-center border shadow-none hover:shadow-none"
+                  className="justify-center border"
                 >
-                  <Link href={"/new"} className="hover:bg-sidebar-accent">
+                  <Link href={"/new-project"}>
                     <Plus />
                     <span className="group-data-[state=collapsed]:hidden">
                       New Project
@@ -137,6 +142,15 @@ const DashboardSidebar = () => {
 
         <SidebarGroup></SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter>
+        <SignOutButton>
+          <Button variant={"destructive"}>
+            <LogOut />
+            Log out
+          </Button>
+        </SignOutButton>
+      </SidebarFooter>
     </Sidebar>
   );
 };
