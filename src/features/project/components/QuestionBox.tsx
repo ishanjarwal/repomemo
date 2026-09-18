@@ -118,6 +118,7 @@ export function QuestionBox({
           {/* Prompt */}
           <div className="px-4 pt-4">
             <Textarea
+              autoFocus={true}
               ref={textareaRef}
               value={question}
               onChange={(event) => setQuestion(event.target.value)}

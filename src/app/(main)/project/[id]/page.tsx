@@ -64,7 +64,7 @@ const ProjectPage = () => {
             repoName={project.repo}
             branch="main"
           />
-          <CommitLog />
+          <CommitLog id={project.id} />
         </div>
       )}
     </>
