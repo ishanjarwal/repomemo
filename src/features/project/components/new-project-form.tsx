@@ -19,8 +19,11 @@ import {
   NewProjectFormValues,
   NewProjectSchema,
 } from "../schema";
+import { useRouter } from "next/navigation";
 
 const NewProjectForm = () => {
+  const router = useRouter();
+
   const form = useForm<NewProjectFormValues, unknown, NewProjectFormOutput>({
     resolver: zodResolver(NewProjectSchema),
     defaultValues: {
@@ -35,10 +38,11 @@ const NewProjectForm = () => {
 
   const onSubmit = (values: NewProjectFormOutput) => {
     createProject.mutate(values, {
-      onSuccess: async () => {
+      onSuccess: async ({ id }) => {
         await apiUtils.project.getProjects.invalidate();
         toast.success("Project Created");
         form.reset();
+        router.push(`/project/${id}`);
       },
       onError: (error) => {
         toast.error(error.message);

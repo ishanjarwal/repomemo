@@ -12,6 +12,7 @@ import { ZodError } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { octokit } from "../github/client";
 
 /**
  * 1. CONTEXT
@@ -28,6 +29,7 @@ import { auth } from "@clerk/nextjs/server";
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   return {
     prisma,
+    octokit,
     ...opts,
   };
 };

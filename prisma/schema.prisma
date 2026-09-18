@@ -12,11 +12,10 @@ model User {
 
   clerkUserId String @unique
 
-  imageUrl  String?
-  firstName String?
-  lastName  String?
-
-  emailAddress String @unique
+  imageUrl     String?
+  firstName    String?
+  lastName     String?
+  emailAddress String  @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -32,10 +31,10 @@ model Credits {
 
   credits Int @default(150)
 
-  updatedAt DateTime @updatedAt
-
   userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  updatedAt DateTime @updatedAt
 
   @@map("credits")
 }
@@ -43,17 +42,45 @@ model Credits {
 model Project {
   id String @id @default(cuid())
 
-  name                  String
-  github_url            String
-  personal_access_token String?
-  isPrivate             Boolean @default(false)
+  name      String
+  github_id String
+
+  // encrypted
+  personalAccessToken String?
 
   userId String
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  commits Commit[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
+  @@unique([userId, github_id])
+  @@index([userId])
+  @@index([userId, deletedAt])
   @@map("projects")
+}
+
+model Commit {
+  id String @id @default(cuid())
+
+  // Git commit SHA — prevents duplicate commits
+  sha String
+
+  aiSummary       String?
+  aiSummaryStatus AISummaryStatus @default(PENDING)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, sha])
+  @@index([projectId])
+  @@map("commits")
+}
+
+enum AISummaryStatus {
+  PENDING
+  COMPLETED
 }

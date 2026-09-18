@@ -119,7 +119,7 @@ const DashboardSidebar = () => {
         <SidebarGroup>
           <SidebarGroupLabel>Projects</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-2">
               <ProjectListSidebar />
 
               <SidebarMenuItem className="mt-4">
