@@ -16,6 +16,8 @@ export const env = createEnv({
     CLERK_WEBHOOK_SIGNING_SECRET: z.string(),
 
     GITHUB_TOKEN: z.string(),
+
+    GEMINI_API_KEY: z.string(),
   },
 
   /**
@@ -61,6 +63,8 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL,
 
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
+
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

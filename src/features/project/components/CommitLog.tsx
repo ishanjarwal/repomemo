@@ -1,6 +1,11 @@
 "use client";
 import { formatDistanceToNow } from "date-fns";
-import { ExternalLink, GitCommitHorizontal, Loader2 } from "lucide-react";
+import {
+  ExternalLink,
+  GitCommitHorizontal,
+  Loader2,
+  Sparkles,
+} from "lucide-react";
 
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +14,7 @@ import ReadMoreArea from "@foxeian/react-read-more";
 import CommitLogSkeleton from "./CommitLogSkeleton";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { Skeleton } from "@/components/ui/skeleton";
+import Markdown from "react-markdown";
 
 const CommitLog = ({ id }: { id: string }) => {
   const { data, isPending, isSuccess, fetchNextPage, hasNextPage } =
@@ -124,17 +130,19 @@ const CommitLog = ({ id }: { id: string }) => {
                         {commit.message}
                       </ReadMoreArea>
 
-                      <div className="space-y-2">
+                      {/* <div className="space-y-2">
                         <Skeleton className="h-3 rounded-md" />
                         <Skeleton className="h-3 rounded-md" />
                         <Skeleton className="h-3 w-[35%] rounded-md" />
-                      </div>
+                      </div> */}
 
-                      {/* <div className="mt-3">
-                      <p className="text-muted-foreground mt-1 text-sm leading-6">
-                        {commit.summary}
-                      </p>
-                    </div> */}
+                      <div className="[&_code]:bg-accent text-muted-foreground mt-3 [&_code]:rounded-lg [&_code]:px-1 [&_code]:py-0.5 [&_li]:ms-4 [&_li]:list-disc">
+                        <h3 className="mb-2 flex items-center space-x-0.5">
+                          <Sparkles className="text-primary size-4" />
+                          <span>AI Summary</span>
+                        </h3>
+                        <Markdown>{commit.aiSummary}</Markdown>
+                      </div>
                     </div>
 
                     <div className="text-muted-foreground mt-4 flex items-center gap-2 text-xs">
