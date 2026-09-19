@@ -6,6 +6,8 @@ import { generateCommitSummary } from "@/server/ai/generate-commit-summary";
 const MAX_SUMMARIZED_COMMITS = 2;
 const COMMITS_PER_PAGE = 1;
 
+// TODO : Hanlde the top latest commits not just the summarized ones. There is a problem when limit is over but new commits are done.
+
 export const commitRouter = createTRPCRouter({
   getCommits: protectedProcedure
     .input(
