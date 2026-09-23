@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [vector]
 }
 
 model User {
@@ -52,6 +54,11 @@ model Project {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   commits Commit[]
+  answers Answer[]
+
+  job ProjectJob?
+
+  repofiles RepoFile[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -83,4 +90,60 @@ model Commit {
 enum AISummaryStatus {
   PENDING
   COMPLETED
+}
+
+model RepoFile {
+  id      String @id @default(uuid())
+  source  String
+  summary String
+
+  embedding Unsupported("vector(768)")
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("repo_files")
+}
+
+model Answer {
+  id String @id @default(cuid())
+
+  question String
+  answer   String
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("answers")
+}
+
+model ProjectJob {
+  id String @id @default(cuid())
+
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id])
+
+  status   ProjectJobStatusEnum @default(queued)
+  progress Int                  @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@map("project_job")
+}
+
+enum ProjectJobStatusEnum {
+  queued
+  fetching_repo
+  indexing_files
+  creating_embeddings
+  building_vector_index
+  ready
+  failed
 }
