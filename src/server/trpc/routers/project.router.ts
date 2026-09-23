@@ -1,5 +1,6 @@
 import { NewProjectSchema } from "@/features/project/schema";
-import { parseGitHubUrl } from "@/server/github/utils";
+import { EVENTS, inngest } from "@/server/inngest/client";
+import { parseGitHubUrl } from "@/server/utils";
 import { TRPCError } from "@trpc/server";
 import { RequestError } from "octokit";
 import z from "zod";
@@ -24,11 +25,13 @@ export const projectRouter = createTRPCRouter({
             github_id: data.id.toString(),
             name: input.name,
             userId: ctx.user_id,
+            job: { create: {} },
           },
           select: {
             id: true,
             github_id: true,
             name: true,
+            job: true,
           },
         });
 
@@ -49,6 +52,14 @@ export const projectRouter = createTRPCRouter({
           html_url,
           owner: repoOwnwer,
         } = response.data;
+
+        await inngest.send(
+          EVENTS.PROJECT_CREATED.create({
+            jobId: project.job!.id,
+            projectId: project.id,
+            repoUrl: html_url,
+          }),
+        );
 
         return {
           ...project,
@@ -163,5 +174,32 @@ export const projectRouter = createTRPCRouter({
       });
 
       return true;
+    }),
+
+  getJob: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const job = await ctx.prisma.projectJob.findUnique({
+        where: {
+          projectId: input.projectId,
+        },
+        select: {
+          id: true,
+          status: true,
+          progress: true,
+        },
+      });
+
+      if (!job) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+        });
+      }
+
+      return job;
     }),
 });
