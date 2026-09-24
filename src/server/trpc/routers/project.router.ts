@@ -124,10 +124,11 @@ export const projectRouter = createTRPCRouter({
           github_id: true,
           createdAt: true,
           updatedAt: true,
+          job: true,
         },
       });
 
-      if (!project) {
+      if (!project || !project.job) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Invalid Request",
@@ -149,6 +150,8 @@ export const projectRouter = createTRPCRouter({
 
       return {
         ...project,
+        job: undefined,
+        jobStatus: project.job.status,
         repo: name as string,
         isPrivate: isPrivate as boolean,
         url: html_url as string,
