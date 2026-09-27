@@ -1,1 +1,32 @@
-export { cn } from "cn"
+export { cn } from "cn";
+
+export const detectLanguage = (filename = "") => {
+  const name = filename.toLowerCase();
+  if (name.endsWith(".tsx")) return "tsx";
+  if (name.endsWith(".ts")) return "typescript";
+  if (name.endsWith(".jsx")) return "jsx";
+  if (name.endsWith(".js")) return "javascript";
+  if (name.endsWith(".mjs")) return "javascript";
+  if (name.endsWith(".cjs")) return "javascript";
+  if (name.endsWith(".json")) return "json";
+  if (name.endsWith(".css")) return "css";
+  if (name.endsWith(".scss")) return "scss";
+  if (name.endsWith(".html")) return "markup";
+  if (name.endsWith(".xml")) return "markup";
+  if (name.endsWith(".md")) return "markdown";
+  if (name.endsWith(".mdx")) return "mdx";
+  if (name.endsWith(".py")) return "python";
+  if (name.endsWith(".rb")) return "ruby";
+  if (name.endsWith(".go")) return "go";
+  if (name.endsWith(".rs")) return "rust";
+  if (name.endsWith(".java")) return "java";
+  if (name.endsWith(".kt")) return "kotlin";
+  if (name.endsWith(".swift")) return "swift";
+  if (name.endsWith(".php")) return "php";
+  if (name.endsWith(".sql")) return "sql";
+  if (name.endsWith(".graphql")) return "graphql";
+  if (name.endsWith(".yaml") || name.endsWith(".yml")) return "yaml";
+  if (name.endsWith(".sh") || name.endsWith(".bash")) return "bash";
+  if (name === "dockerfile") return "docker";
+  return "text";
+};

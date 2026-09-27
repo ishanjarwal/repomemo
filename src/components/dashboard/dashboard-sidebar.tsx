@@ -1,18 +1,14 @@
 "use client";
 
 import { env } from "@/env";
+import ProjectListSidebar from "@/features/project/components/project-list-sidebar";
+import { SignOutButton } from "@clerk/nextjs";
 import { cn } from "cn";
-import {
-  CreditCard,
-  Folder,
-  LayoutDashboard,
-  LogOut,
-  MessageCircleQuestion,
-  Plus,
-} from "lucide-react";
+import { CreditCard, LayoutDashboard, LogOut, Plus } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import {
   Sidebar,
@@ -27,9 +23,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "../ui/sidebar";
-import { Button } from "../ui/button";
-import { SignOutButton } from "@clerk/nextjs";
-import ProjectListSidebar from "@/features/project/components/project-list-sidebar";
 
 const APPLICATION_MENU = [
   {
@@ -37,11 +30,9 @@ const APPLICATION_MENU = [
     href: "/dashboard",
     icon: LayoutDashboard,
   },
-  {
-    title: "QnA",
-    href: "/qna",
-    icon: MessageCircleQuestion,
-  },
+];
+
+const FOOTER_MENU = [
   {
     title: "Billing",
     href: "/billing",
@@ -93,7 +84,7 @@ const DashboardSidebar = () => {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Applicaton</SidebarGroupLabel>
+          <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
               {APPLICATION_MENU.map((item) => (
@@ -115,7 +106,7 @@ const DashboardSidebar = () => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <Separator />
+
         <SidebarGroup>
           <SidebarGroupLabel>Projects</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -139,11 +130,32 @@ const DashboardSidebar = () => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        <SidebarGroup></SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter>
+        <SidebarGroup>
+          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-1">
+              {FOOTER_MENU.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      className={cn(
+                        pathname === item.href &&
+                          "bg-primary! hover:bg-primary! text-primary-foreground! hover:text-primary-foreground!",
+                      )}
+                      href={item.href}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
         <SignOutButton>
           <Button variant={"destructive"}>
             <LogOut />

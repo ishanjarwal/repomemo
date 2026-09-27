@@ -1,12 +1,14 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import Answer from "@/features/project/components/Answer";
+import AnswerList from "@/features/project/components/AnswerList";
 import { CreateLoader } from "@/features/project/components/CreateLoader";
 import { ProjectDropdownMenu } from "@/features/project/components/ProjectDropdownMenu";
 import { QuestionBox } from "@/features/project/components/QuestionBox";
 import { api } from "@/lib/trpc/react";
 import { formatDistanceToNow } from "date-fns";
-import { Folder } from "lucide-react";
+import { CircleQuestionMark, Folder, MessageCircleCheck } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -155,6 +157,14 @@ const ProjectPage = () => {
         repoName={project.repo}
         branch="main"
       />
+
+      <div className="space-y-4 pt-12">
+        <div className="flex items-center justify-start space-x-2">
+          <MessageCircleCheck className="mt-1 size-6" />
+          <h1 className="text-2xl font-semibold">Previous Answers</h1>
+        </div>
+        <AnswerList projectId={id} />
+      </div>
 
       {/* <CommitLog id={project.id} /> */}
     </div>

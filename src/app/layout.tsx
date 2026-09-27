@@ -1,13 +1,13 @@
 import "@/styles/globals.css";
 
-import { type Metadata } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
-import { cn } from "@/lib/utils";
-import { TRPCReactProvider } from "@/lib/trpc/react";
-import { ClerkProvider } from "@clerk/nextjs";
-import { ThemeProvider } from "next-themes";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { TRPCReactProvider } from "@/lib/trpc/react";
+import { cn } from "@/lib/utils";
+import { ClerkProvider } from "@clerk/nextjs";
+import { type Metadata } from "next";
+import { ThemeProvider } from "next-themes";
+import { Fira_Code, Inter, Plus_Jakarta_Sans } from "next/font/google";
 
 export const metadata: Metadata = {
   title: "RepoMemo",
@@ -17,12 +17,17 @@ export const metadata: Metadata = {
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-plus-jakarta-sans",
+  variable: "--font-heading",
 });
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-inter-sans",
+  variable: "--font-paragraph",
+});
+
+const firaCode = Fira_Code({
+  subsets: ["latin"],
+  variable: "--font-code",
 });
 
 export default function RootLayout({
@@ -34,7 +39,11 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning // next-themes modifies <html> on the client
-      className={cn(plusJakartaSans.variable, inter.variable)}
+      className={cn(
+        plusJakartaSans.variable,
+        inter.variable,
+        firaCode.variable,
+      )}
     >
       <body>
         <ThemeProvider

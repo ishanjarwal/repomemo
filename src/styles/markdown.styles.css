@@ -1,0 +1,359 @@
+@reference "./globals.css";
+
+.markdown {
+  @apply text-foreground text-[15px] leading-7 antialiased;
+}
+
+/* ─────────────────────────────────────────────
+   Paragraphs
+   ───────────────────────────────────────────── */
+
+.markdown p {
+  @apply my-4;
+}
+
+.markdown > p:first-child {
+  @apply mt-0;
+}
+
+.markdown > p:last-child {
+  @apply mb-0;
+}
+
+/* ─────────────────────────────────────────────
+   Headings
+   ───────────────────────────────────────────── */
+
+.markdown h1 {
+  @apply text-foreground mt-8 mb-4 text-2xl font-semibold tracking-tight;
+}
+
+.markdown h2 {
+  @apply text-foreground mt-7 mb-3 text-xl font-semibold tracking-tight;
+}
+
+.markdown h3 {
+  @apply text-foreground mt-6 mb-3 text-lg font-semibold tracking-tight;
+}
+
+.markdown h4 {
+  @apply text-foreground mt-5 mb-2 text-base font-semibold;
+}
+
+.markdown h5 {
+  @apply text-foreground mt-5 mb-2 text-sm font-semibold;
+}
+
+.markdown h6 {
+  @apply text-muted-foreground mt-4 mb-2 text-sm font-medium;
+}
+
+.markdown h1:first-child,
+.markdown h2:first-child,
+.markdown h3:first-child {
+  @apply mt-0;
+}
+
+/* ─────────────────────────────────────────────
+   Strong / Emphasis
+   ───────────────────────────────────────────── */
+
+.markdown strong {
+  @apply text-foreground font-semibold;
+}
+
+.markdown em {
+  @apply italic;
+}
+
+.markdown del {
+  @apply text-muted-foreground line-through;
+}
+
+/* ─────────────────────────────────────────────
+   Links
+   ───────────────────────────────────────────── */
+
+.markdown a {
+  @apply text-primary decoration-primary/40 font-medium underline underline-offset-2 transition-colors;
+}
+
+.markdown a:hover {
+  @apply decoration-primary;
+}
+
+/* ─────────────────────────────────────────────
+   Unordered Lists
+   ───────────────────────────────────────────── */
+
+.markdown ul {
+  @apply my-4 list-disc space-y-1.5 pl-6;
+}
+
+.markdown ul ul {
+  @apply my-1.5 list-[circle];
+}
+
+.markdown ul ul ul {
+  @apply list-[square];
+}
+
+/* ─────────────────────────────────────────────
+   Ordered Lists
+   ───────────────────────────────────────────── */
+
+.markdown ol {
+  @apply my-4 list-decimal space-y-1.5 pl-6;
+}
+
+.markdown ol ol {
+  @apply my-1.5 list-[lower-alpha];
+}
+
+.markdown ol ol ol {
+  @apply list-[lower-roman];
+}
+
+/* ─────────────────────────────────────────────
+   List Items
+   ───────────────────────────────────────────── */
+
+.markdown li {
+  @apply pl-1 leading-7;
+}
+
+.markdown li > p {
+  @apply my-1;
+}
+
+.markdown li > ul,
+.markdown li > ol {
+  @apply mt-1 mb-1;
+}
+
+/* ─────────────────────────────────────────────
+   Inline Code
+   ───────────────────────────────────────────── */
+
+.markdown :not(pre) > code {
+  @apply border-border/60 bg-muted/70 text-foreground font-code rounded-md border px-1.5 py-0.5 text-[0.875em] font-medium;
+}
+
+/* Remove markdown backtick artifacts if present */
+.markdown :not(pre) > code::before,
+.markdown :not(pre) > code::after {
+  content: none;
+}
+
+/* ─────────────────────────────────────────────
+   Inline Code
+   ───────────────────────────────────────────── */
+
+.markdown pre {
+  @apply leading-normal;
+}
+
+/* ─────────────────────────────────────────────
+   Blockquotes
+   ───────────────────────────────────────────── */
+
+.markdown blockquote {
+  @apply border-border text-muted-foreground my-5 border-l-2 pl-4;
+}
+
+.markdown blockquote p {
+  @apply my-2;
+}
+
+.markdown blockquote > :first-child {
+  @apply mt-0;
+}
+
+.markdown blockquote > :last-child {
+  @apply mb-0;
+}
+
+/* ─────────────────────────────────────────────
+   Horizontal Rule
+   ───────────────────────────────────────────── */
+
+.markdown hr {
+  @apply border-border my-8 border-0 border-t;
+}
+
+/* ─────────────────────────────────────────────
+   Images
+   ───────────────────────────────────────────── */
+
+.markdown img {
+  @apply border-border/60 my-5 max-w-full rounded-xl border;
+}
+
+/* ─────────────────────────────────────────────
+   Tables
+   ───────────────────────────────────────────── */
+
+.markdown table {
+  @apply border-border/60 my-5 w-full border-collapse overflow-hidden rounded-lg border text-sm;
+}
+
+.markdown thead {
+  @apply bg-muted/60;
+}
+
+.markdown th {
+  @apply border-border/60 border-b px-4 py-2.5 text-left font-semibold;
+}
+
+.markdown td {
+  @apply border-border/40 border-b px-4 py-2.5 align-top;
+}
+
+.markdown tbody tr:last-child td {
+  @apply border-b-0;
+}
+
+.markdown tbody tr:hover {
+  @apply bg-muted/30;
+}
+
+/* ─────────────────────────────────────────────
+   Definition-style HTML
+   ───────────────────────────────────────────── */
+
+.markdown dt {
+  @apply mt-4 font-semibold;
+}
+
+.markdown dd {
+  @apply text-muted-foreground mt-1 ml-6;
+}
+
+/* ─────────────────────────────────────────────
+   Keyboard
+   ───────────────────────────────────────────── */
+
+.markdown kbd {
+  @apply border-border bg-muted rounded-md border px-1.5 py-0.5 font-mono text-xs font-medium shadow-sm;
+}
+
+/* ─────────────────────────────────────────────
+   Mark / Highlight
+   ───────────────────────────────────────────── */
+
+.markdown mark {
+  @apply rounded bg-yellow-200/60 px-1 text-inherit dark:bg-yellow-500/20;
+}
+
+/* ─────────────────────────────────────────────
+   Sup / Sub
+   ───────────────────────────────────────────── */
+
+.markdown sup {
+  @apply text-xs;
+}
+
+.markdown sub {
+  @apply text-xs;
+}
+
+/* ─────────────────────────────────────────────
+   Details / Summary
+   ───────────────────────────────────────────── */
+
+.markdown details {
+  @apply border-border/60 bg-muted/30 my-4 rounded-lg border px-4 py-3;
+}
+
+.markdown summary {
+  @apply cursor-pointer font-medium select-none;
+}
+
+/* ─────────────────────────────────────────────
+   Task Lists
+   Works with:
+   - [ ] Todo
+   - [x] Done
+   ───────────────────────────────────────────── */
+
+.markdown input[type="checkbox"] {
+  @apply accent-primary mr-2 h-4 w-4 translate-y-[2px];
+}
+
+.markdown li:has(> input[type="checkbox"]) {
+  @apply list-none pl-0;
+}
+
+/* ─────────────────────────────────────────────
+   First / Last Child Cleanup
+   ───────────────────────────────────────────── */
+
+.markdown > :first-child {
+  @apply mt-0;
+}
+
+.markdown > :last-child {
+  @apply mb-0;
+}
+
+/* ─────────────────────────────────────────────
+   Adjacent Elements
+   Makes markdown feel less "blocky" and more
+   like a conversational AI response.
+   ───────────────────────────────────────────── */
+
+.markdown h1 + p,
+.markdown h2 + p,
+.markdown h3 + p,
+.markdown h4 + p {
+  @apply mt-0;
+}
+
+.markdown p + ul,
+.markdown p + ol {
+  @apply mt-0;
+}
+
+.markdown ul + p,
+.markdown ol + p {
+  @apply mt-5;
+}
+
+.markdown pre + p,
+.markdown p + pre {
+  @apply mt-5;
+}
+
+/* ─────────────────────────────────────────────
+   Mobile
+   ───────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .markdown {
+    @apply text-sm leading-6;
+  }
+
+  .markdown h1 {
+    @apply text-xl;
+  }
+
+  .markdown h2 {
+    @apply text-lg;
+  }
+
+  .markdown h3 {
+    @apply text-base;
+  }
+
+  .markdown table {
+    @apply block overflow-x-auto;
+  }
+
+  .markdown pre {
+    @apply rounded-lg;
+  }
+
+  .markdown pre code {
+    @apply text-xs;
+  }
+}

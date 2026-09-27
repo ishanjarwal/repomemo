@@ -5,6 +5,10 @@ import { TRPCError } from "@trpc/server";
 import { RequestError } from "octokit";
 import z from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { remark } from "remark";
+import stripMarkdown from "strip-markdown";
+
+const ANSWERS_PER_PAGE = 10;
 
 export const projectRouter = createTRPCRouter({
   createProject: protectedProcedure
@@ -204,5 +208,91 @@ export const projectRouter = createTRPCRouter({
       }
 
       return job;
+    }),
+
+  getAnswer: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const answer = await ctx.prisma.answer.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+
+      if (!answer) return null;
+
+      const project = await ctx.prisma.project.findUnique({
+        where: { id: answer.projectId },
+      });
+
+      const sources = await Promise.all(
+        answer.sources.map(async (source) => {
+          const response = await ctx.octokit.request(
+            "GET /repositories/{id}/contents/{path}",
+            {
+              id: project!.github_id,
+              path: source,
+            },
+          );
+
+          if (response.data && response.data.type === "file") {
+            const base64Content = response.data.content;
+            const decodedText = Buffer.from(base64Content, "base64").toString(
+              "utf-8",
+            );
+
+            return { source, contents: decodedText };
+          }
+
+          return { source, contents: null };
+        }),
+      );
+
+      return {
+        ...answer,
+        sources,
+      };
+    }),
+
+  getAnswers: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string().min(1),
+        cursor: z.number().nullish(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const page = input.cursor ?? 1;
+
+      const answers = await ctx.prisma.answer.findMany({
+        where: {
+          projectId: input.projectId,
+        },
+        select: {
+          id: true,
+          question: true,
+          answer: true,
+          createdAt: true,
+        },
+      });
+
+      const r = await Promise.all(
+        answers.map(async (ans) => {
+          const file = await remark().use(stripMarkdown).process(ans.answer);
+          return {
+            ...ans,
+            answer: String(file).trim().slice(0, 100) + "...",
+          };
+        }),
+      );
+
+      return {
+        answers: r,
+        nextCursor: answers.length === ANSWERS_PER_PAGE ? page + 1 : undefined,
+      };
     }),
 });
