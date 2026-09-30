@@ -1,12 +1,15 @@
-import { NewProjectSchema } from "@/features/project/schema";
+import { NewProjectSchema, QuestionSchema } from "@/features/project/schema";
 import { EVENTS, inngest } from "@/server/inngest/client";
-import { parseGitHubUrl } from "@/server/utils";
+import { parseGitHubUrl, prepareQueryContext } from "@/server/utils";
 import { TRPCError } from "@trpc/server";
 import { RequestError } from "octokit";
 import z from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { remark } from "remark";
 import stripMarkdown from "strip-markdown";
+import { generateAnswer } from "@/server/ai/generate-answer";
+import { generateQueryEmbedding } from "@/server/ai/generate-query-embedding";
+import { components } from "@octokit/openapi-types";
 
 const ANSWERS_PER_PAGE = 10;
 
@@ -21,12 +24,20 @@ export const projectRouter = createTRPCRouter({
           owner,
           repo,
         });
+        const { data: branch } = await ctx.octokit.rest.repos.getBranch({
+          owner,
+          repo,
+          branch: data.default_branch,
+        });
+
+        const latestCommitSha = branch.commit.sha;
 
         // TODO : consider unique constraint on github_id and userId because deletion just sets the deletedAt and doesn't actually delete the project. So if a user deletes a project, and tries to create a new project but for the same repo, it throws db error.
 
         const project = await ctx.prisma.project.create({
           data: {
             github_id: data.id.toString(),
+            indexedCommitSha: latestCommitSha,
             name: input.name,
             userId: ctx.user_id,
             job: { create: {} },
@@ -210,6 +221,88 @@ export const projectRouter = createTRPCRouter({
       return job;
     }),
 
+  askQuestion: protectedProcedure
+    .input(z.object({ ...QuestionSchema.shape, projectId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const project = await ctx.prisma.project.findUnique({
+        where: { id: input.projectId, userId: ctx.user_id },
+      });
+      if (!project) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid Request",
+        });
+      }
+
+      type Repository = components["schemas"]["full-repository"];
+
+      const { github_id, indexedCommitSha } = project;
+
+      const { data: repository }: { data: Repository } =
+        await ctx.octokit.request("GET /repositories/{id}", {
+          id: github_id,
+        });
+
+      const username = repository.owner.login;
+      const repo = repository.name;
+
+      const embedding = await generateQueryEmbedding(input.question);
+
+      const vectorString = `[${embedding.join(",")}]`;
+
+      type VectorResult = {
+        source: string;
+        summary: string;
+        similarity: number;
+      };
+
+      const results = await ctx.prisma.$queryRaw<VectorResult[]>`
+        SELECT 
+          "source", 
+          "summary",
+          1 - ("embedding" <=> ${vectorString}::vector) AS "similarity"
+        FROM "repo_files"
+        WHERE "projectId" = ${input.projectId}
+          AND ("embedding" <=> ${vectorString}::vector) < 0.5
+        ORDER BY "embedding" <=> ${vectorString}::vector ASC
+        LIMIT 5;
+        `;
+
+      type GitHubFileContent = components["schemas"]["content-file"];
+
+      const similar_files = await Promise.all(
+        results.map(async (result) => {
+          const { data: code }: { data: GitHubFileContent } =
+            await ctx.octokit.request(
+              "GET /repos/{owner}/{repo}/contents/{source}?ref={ref}",
+              {
+                owner: username,
+                repo,
+                source: result.source,
+                ref: indexedCommitSha,
+              },
+            );
+          return {
+            source: result.source,
+            code: Buffer.from(code.content, "base64").toString("utf-8"),
+          };
+        }),
+      );
+
+      const context = prepareQueryContext(similar_files);
+      const generated = await generateAnswer(input.question, context);
+      const saved = await ctx.prisma.answer.create({
+        data: {
+          answer: generated.answer,
+          question: input.question,
+          projectId: input.projectId,
+          sources: generated.files,
+        },
+      });
+
+      return saved.id;
+    }),
+
   getAnswer: protectedProcedure
     .input(
       z.object({
@@ -231,16 +324,18 @@ export const projectRouter = createTRPCRouter({
 
       const sources = await Promise.all(
         answer.sources.map(async (source) => {
-          const response = await ctx.octokit.request(
-            "GET /repositories/{id}/contents/{path}",
-            {
-              id: project!.github_id,
-              path: source,
-            },
-          );
+          const { data }: { data: components["schemas"]["content-file"] } =
+            await ctx.octokit.request(
+              "GET /repositories/{id}/contents/{path}?ref={ref}",
+              {
+                id: project!.github_id,
+                path: source,
+                ref: project?.indexedCommitSha,
+              },
+            );
 
-          if (response.data && response.data.type === "file") {
-            const base64Content = response.data.content;
+          if (data && data.type === "file") {
+            const base64Content = data.content;
             const decodedText = Buffer.from(base64Content, "base64").toString(
               "utf-8",
             );

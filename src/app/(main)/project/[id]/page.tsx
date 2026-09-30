@@ -1,14 +1,13 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import Answer from "@/features/project/components/Answer";
 import AnswerList from "@/features/project/components/AnswerList";
 import { CreateLoader } from "@/features/project/components/CreateLoader";
 import { ProjectDropdownMenu } from "@/features/project/components/ProjectDropdownMenu";
 import { QuestionBox } from "@/features/project/components/QuestionBox";
 import { api } from "@/lib/trpc/react";
 import { formatDistanceToNow } from "date-fns";
-import { CircleQuestionMark, Folder, MessageCircleCheck } from "lucide-react";
+import { Folder, MessageCircleCheck } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -152,6 +151,7 @@ const ProjectPage = () => {
       </div>
 
       <QuestionBox
+        projectId={id}
         ownerAvatarUrl={project.owner.avatar_url}
         ownerLogin={project.owner.username}
         repoName={project.repo}

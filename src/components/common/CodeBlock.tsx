@@ -37,7 +37,7 @@ const CodeBlock = ({ code, filename, language }: CodeBlockProps) => {
           </div>
 
           <span className="text-muted-foreground/80 text-xs font-medium">
-            {filename}
+            {filename || language}
           </span>
         </div>
 

@@ -29,3 +29,18 @@ export function chunkArray<T>(arr: T[], size: number = 5): T[][] {
   }
   return result;
 }
+
+export function prepareQueryContext(files: { source: string; code: string }[]) {
+  let ctx = "";
+
+  for (const file of files) {
+    ctx += `
+    File : ${file.source}
+    Code : 
+    ${file.code}
+    ---
+    `;
+  }
+
+  return ctx;
+}

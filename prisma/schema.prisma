@@ -44,8 +44,9 @@ model Credits {
 model Project {
   id String @id @default(cuid())
 
-  name      String
-  github_id String
+  name             String
+  github_id        String
+  indexedCommitSha String
 
   // encrypted
   personalAccessToken String?

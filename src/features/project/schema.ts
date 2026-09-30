@@ -13,3 +13,12 @@ export const NewProjectSchema = z.object({
 
 export type NewProjectFormValues = z.input<typeof NewProjectSchema>;
 export type NewProjectFormOutput = z.output<typeof NewProjectSchema>;
+
+export const QuestionSchema = z.object({
+  question: z
+    .string()
+    .min(1, { error: "Can't be empty" })
+    .max(2000, { error: "Prompt too long" }),
+});
+
+export type QuestionValues = z.input<typeof QuestionSchema>;

@@ -3,13 +3,17 @@ import { ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import useUpdateSearchParams from "@/hooks/use-update-search-params";
 import { api } from "@/lib/trpc/react";
+import { useSearchParams } from "next/navigation";
 import InfiniteScroll from "react-infinite-scroll-component";
 import Answer from "./Answer";
-import { useState } from "react";
 
 const AnswerList = ({ projectId }: { projectId: string }) => {
-  const [answerId, setAnswerId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const answerId = searchParams.get("answerId");
+
+  const updateSearchParams = useUpdateSearchParams();
 
   const { data, isPending, isSuccess, fetchNextPage, hasNextPage } =
     api.project.getAnswers.useInfiniteQuery(
@@ -39,7 +43,7 @@ const AnswerList = ({ projectId }: { projectId: string }) => {
           <Answer
             id={answerId}
             onClose={() => {
-              setAnswerId(null);
+              updateSearchParams({ answerId: undefined });
             }}
           />
 
@@ -65,7 +69,7 @@ const AnswerList = ({ projectId }: { projectId: string }) => {
             {answers.map((answer, index) => (
               <div key={answer.id}>
                 <Button
-                  onClick={() => setAnswerId(answer.id)}
+                  onClick={() => updateSearchParams({ answerId: answer.id })}
                   variant="ghost"
                   className="hover:bg-muted/50 h-auto w-full justify-between gap-6 rounded-none px-4 py-4 text-left"
                 >
