@@ -101,7 +101,7 @@ model RepoFile {
   embedding Unsupported("vector(768)")
 
   projectId String
-  project   Project @relation(fields: [projectId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
@@ -117,7 +117,7 @@ model Answer {
   sources  String[]
 
   projectId String
-  project   Project @relation(fields: [projectId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -129,7 +129,7 @@ model ProjectJob {
   id String @id @default(cuid())
 
   projectId String  @unique
-  project   Project @relation(fields: [projectId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   status   ProjectJobStatusEnum @default(queued)
   progress Int                  @default(0)
