@@ -29,12 +29,7 @@ const ProjectPage = () => {
 
   // First query on page load.
   // This tells us whether ingestion is already complete.
-  const projectQuery = api.project.getProject.useQuery(
-    { id },
-    {
-      enabled: !!id,
-    },
-  );
+  const projectQuery = api.project.getProject.useQuery({ id });
 
   const project = projectQuery.data;
   const jobStatus = project?.jobStatus;
