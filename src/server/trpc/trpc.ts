@@ -8,11 +8,12 @@
  */
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { ZodError } from "zod";
+import z, { ZodError } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { octokit } from "../github/client";
+import { sanitizeError } from "./utils";
 
 /**
  * 1. CONTEXT
@@ -49,7 +50,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
       data: {
         ...shape.data,
         zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
+          error.cause instanceof ZodError ? z.treeifyError(error.cause) : null,
       },
     };
   },
@@ -100,6 +101,17 @@ const isAuthenticated = t.middleware(async ({ next, ctx }) => {
   });
 });
 
+// Middleware to catch and sanitize unhandled service/DB errors
+const errorHandlingMiddleware = t.middleware(async ({ next }) => {
+  const result = await next();
+
+  if (!result.ok) {
+    throw sanitizeError(result.error.cause ?? result.error);
+  }
+
+  return result;
+});
+
 /**
  * Public (unauthenticated) procedure
  *
@@ -107,5 +119,7 @@ const isAuthenticated = t.middleware(async ({ next, ctx }) => {
  * guarantee that a user querying is authorized, but you can still access user session data if they
  * are logged in.
  */
-export const publicProcedure = t.procedure;
-export const protectedProcedure = t.procedure.use(isAuthenticated);
+export const publicProcedure = t.procedure.use(errorHandlingMiddleware);
+export const protectedProcedure = t.procedure
+  .use(errorHandlingMiddleware)
+  .use(isAuthenticated);
