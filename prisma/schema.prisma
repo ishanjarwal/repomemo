@@ -111,6 +111,7 @@ model RepoFile {
 model Answer {
   id String @id @default(cuid())
 
+  title    String
   question String
   answer   String
   sources  String[]

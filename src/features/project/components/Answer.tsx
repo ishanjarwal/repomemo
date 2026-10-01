@@ -89,12 +89,11 @@ const Answer = ({
                 </div>
 
                 <SheetTitle className="text-xl font-semibold tracking-tight">
-                  {answer.question}
+                  {answer.title}
                 </SheetTitle>
 
                 <SheetDescription className="text-muted-foreground mt-2 max-w-2xl text-sm leading-6">
-                  This is an AI-generated response based on the project context
-                  and referenced source files. AI can make mistakes.
+                  <strong>Your Query : </strong> {answer.question}
                 </SheetDescription>
               </div>
             </SheetHeader>
@@ -182,7 +181,7 @@ const SourceTabs = ({
             <TabsTrigger
               key={source.source}
               value={source.source}
-              className="group data-[state=active]:bg-muted data-[state=active]:text-foreground flex h-auto items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all data-[state=active]:shadow-sm"
+              className="group data-[state=active]:bg-muted data-[state=active]:text-foreground flex h-auto flex-none items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all data-[state=active]:shadow-sm"
             >
               <FileCode2 className="text-muted-foreground group-data-[state=active]:text-primary h-3.5 w-3.5" />
 

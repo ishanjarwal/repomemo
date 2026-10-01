@@ -44,23 +44,24 @@ export function QuestionBox({
 
   const apiUtils = api.useUtils();
 
-  const questionMutation = api.project.askQuestion.useMutation({
-    onSuccess(data) {
-      updateSearchParams({ answerId: data });
-      apiUtils.project.getAnswers.refetch();
-    },
-    onError(error) {
-      toast.error(error.message);
-    },
-    retry: false,
-  });
-
   const form = useForm<QuestionValues>({
     resolver: zodResolver(QuestionSchema),
     defaultValues: { question: "" },
   });
 
   const values = form.watch();
+
+  const questionMutation = api.project.askQuestion.useMutation({
+    onSuccess(data) {
+      updateSearchParams({ answerId: data });
+      apiUtils.project.getAnswers.refetch();
+      form.reset();
+    },
+    onError(error) {
+      toast.error(error.message);
+    },
+    retry: false,
+  });
 
   const submit = (values: QuestionValues) => {
     questionMutation.mutate({ ...values, projectId });

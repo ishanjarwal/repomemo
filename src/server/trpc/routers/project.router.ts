@@ -1,15 +1,15 @@
 import { NewProjectSchema, QuestionSchema } from "@/features/project/schema";
-import { EVENTS, inngest } from "@/server/inngest/client";
-import { parseGitHubUrl, prepareQueryContext } from "@/server/utils";
-import { TRPCError } from "@trpc/server";
-import { RequestError } from "octokit";
-import z from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { remark } from "remark";
-import stripMarkdown from "strip-markdown";
 import { generateAnswer } from "@/server/ai/generate-answer";
 import { generateQueryEmbedding } from "@/server/ai/generate-query-embedding";
+import { EVENTS, inngest } from "@/server/inngest/client";
+import { parseGitHubUrl, prepareQueryContext } from "@/server/utils";
 import { components } from "@octokit/openapi-types";
+import { Endpoints } from "@octokit/types";
+import { TRPCError } from "@trpc/server";
+import { remark } from "remark";
+import stripMarkdown from "strip-markdown";
+import z from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 const ANSWERS_PER_PAGE = 10;
 
@@ -17,101 +17,82 @@ export const projectRouter = createTRPCRouter({
   createProject: protectedProcedure
     .input(NewProjectSchema)
     .mutation(async ({ ctx, input }) => {
-      // 1. validate the github url
-      try {
-        const { owner, repo } = parseGitHubUrl(input.github_url);
-        const { data } = await ctx.octokit.rest.repos.get({
-          owner,
-          repo,
+      const { owner, repo } = parseGitHubUrl(input.github_url);
+      const { data: repository } = await ctx.octokit.rest.repos.get({
+        owner,
+        repo,
+      });
+
+      // Check unique constraint on userId and github_id to prevent duplicate project creation
+      const exists = await ctx.prisma.project.findFirst({
+        where: {
+          github_id: repository.id.toString(),
+          userId: ctx.user_id,
+        },
+      });
+      if (exists) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "This repository is already indexed. Please check in your Projects",
         });
-        const { data: branch } = await ctx.octokit.rest.repos.getBranch({
-          owner,
-          repo,
-          branch: data.default_branch,
-        });
-
-        const latestCommitSha = branch.commit.sha;
-
-        // TODO : consider unique constraint on github_id and userId because deletion just sets the deletedAt and doesn't actually delete the project. So if a user deletes a project, and tries to create a new project but for the same repo, it throws db error.
-
-        const project = await ctx.prisma.project.create({
-          data: {
-            github_id: data.id.toString(),
-            indexedCommitSha: latestCommitSha,
-            name: input.name,
-            userId: ctx.user_id,
-            job: { create: {} },
-          },
-          select: {
-            id: true,
-            github_id: true,
-            name: true,
-            job: true,
-          },
-        });
-
-        const response = await ctx.octokit.request(`GET /repositories/{id}`, {
-          id: project.github_id,
-        });
-
-        if (response.status !== 200) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Invalid Request",
-          });
-        }
-
-        const {
-          name,
-          private: isPrivate,
-          html_url,
-          owner: repoOwnwer,
-        } = response.data;
-
-        await inngest.send(
-          EVENTS.PROJECT_CREATED.create({
-            jobId: project.job!.id,
-            projectId: project.id,
-            repoUrl: html_url,
-          }),
-        );
-
-        return {
-          ...project,
-          repo: name as string,
-          isPrivate: isPrivate as boolean,
-          url: html_url as string,
-          owner: {
-            username: repoOwnwer.login as string,
-            avatar_url: repoOwnwer.avatar_url as string,
-          },
-        };
-      } catch (error: unknown) {
-        console.log(error);
-        if (error instanceof RequestError) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Invalid Github Repo",
-          });
-        } else if (error instanceof Error) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: error.message,
-          });
-        } else {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Something went wrong",
-          });
-        }
       }
+
+      const { data: branch } = await ctx.octokit.rest.repos.getBranch({
+        owner,
+        repo,
+        branch: repository.default_branch,
+      });
+
+      const latestCommitSha = branch.commit.sha;
+
+      const project = await ctx.prisma.project.create({
+        data: {
+          github_id: repository.id.toString(),
+          indexedCommitSha: latestCommitSha,
+          name: input.name,
+          userId: ctx.user_id,
+          job: { create: {} },
+        },
+        select: {
+          id: true,
+          github_id: true,
+          name: true,
+          job: true,
+        },
+      });
+
+      const {
+        name,
+        private: isPrivate,
+        html_url,
+        owner: repoOwnwer,
+      } = repository;
+
+      await inngest.send(
+        EVENTS.PROJECT_CREATED.create({
+          jobId: project.job!.id,
+          projectId: project.id,
+          repoUrl: html_url,
+        }),
+      );
+
+      return {
+        ...project,
+        repo: name as string,
+        isPrivate: isPrivate as boolean,
+        url: html_url as string,
+        owner: {
+          username: repoOwnwer.login as string,
+          avatar_url: repoOwnwer.avatar_url as string,
+        },
+      };
     }),
 
   getProjects: protectedProcedure.query(async ({ ctx }) => {
     const projects = await ctx.prisma.project.findMany({
       where: {
         userId: ctx.user_id,
-        deletedAt: null,
       },
       select: {
         id: true,
@@ -131,7 +112,6 @@ export const projectRouter = createTRPCRouter({
         where: {
           id: input.id,
           userId: ctx.user_id,
-          deletedAt: null,
         },
         select: {
           id: true,
@@ -150,18 +130,14 @@ export const projectRouter = createTRPCRouter({
         });
       }
 
-      const response = await ctx.octokit.request("GET /repositories/{id}", {
-        id: project.github_id,
-      });
-
-      if (response.status !== 200) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Invalid Request",
+      const {
+        data,
+      }: { data: Endpoints["GET /repositories"]["response"]["data"][number] } =
+        await ctx.octokit.request("GET /repositories/{id}", {
+          id: project.github_id,
         });
-      }
 
-      const { name, private: isPrivate, html_url, owner } = response.data;
+      const { name, private: isPrivate, html_url, owner } = data;
 
       return {
         ...project,
@@ -180,14 +156,10 @@ export const projectRouter = createTRPCRouter({
   deleteProject: protectedProcedure
     .input(z.object({ id: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.prisma.project.update({
+      await ctx.prisma.project.delete({
         where: {
           id: input.id,
           userId: ctx.user_id,
-          deletedAt: null,
-        },
-        data: {
-          deletedAt: { set: new Date() },
         },
       });
 
@@ -293,6 +265,7 @@ export const projectRouter = createTRPCRouter({
       const generated = await generateAnswer(input.question, context);
       const saved = await ctx.prisma.answer.create({
         data: {
+          title: generated.title,
           answer: generated.answer,
           question: input.question,
           projectId: input.projectId,

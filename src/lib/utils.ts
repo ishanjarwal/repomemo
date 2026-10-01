@@ -27,6 +27,7 @@ export const detectLanguage = (filename = "") => {
   if (name.endsWith(".graphql")) return "graphql";
   if (name.endsWith(".yaml") || name.endsWith(".yml")) return "yaml";
   if (name.endsWith(".sh") || name.endsWith(".bash")) return "bash";
+  if (name.endsWith(".l")) return "flex";
   if (name === "dockerfile") return "docker";
   return "text";
 };

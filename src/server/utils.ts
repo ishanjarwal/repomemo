@@ -1,3 +1,7 @@
+/**
+ * Validates the provided github url for url schema, throws error if invalid
+ * @param githubUrl
+ */
 export function parseGitHubUrl(githubUrl: string) {
   try {
     const url = new URL(githubUrl);

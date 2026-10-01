@@ -4,6 +4,10 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { z } from "zod";
 
 const AnswerSchema = z.object({
+  title: z
+    .string()
+    .min(1)
+    .describe("A short title to the chat related to the user's query"),
   answer: z
     .string()
     .min(50)
@@ -73,6 +77,7 @@ Your task is to provide a highly accurate, clear, and actionable answer to the u
 - Do not unnecessarily repeat the user's question.
 - Keep the complete response within 5000 characters.
 - Do not sacrifice correctness merely to satisfy the character limit.
+- Do not start with a heading as its already been taken care of. Instead start directly with a paragraph
 
 ## OUTPUT QUALITY
 
