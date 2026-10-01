@@ -133,7 +133,7 @@ const DashboardSidebar = () => {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarGroup>
+        <SidebarGroup className="p-0">
           <SidebarGroupLabel>Settings</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
@@ -157,9 +157,12 @@ const DashboardSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
         <SignOutButton>
-          <Button variant={"destructive"}>
+          <Button
+            variant={"destructive"}
+            className="group-data-[state=collapsed]:space-x-0"
+          >
             <LogOut />
-            Log out
+            <span className="group-data-[state=collapsed]:hidden">Log out</span>
           </Button>
         </SignOutButton>
       </SidebarFooter>
