@@ -147,7 +147,7 @@ const ProjectPage = () => {
           </div>
         </div>
 
-        <ProjectDropdownMenu id={project.id} />
+        <ProjectDropdownMenu project={project} />
       </div>
 
       <QuestionBox

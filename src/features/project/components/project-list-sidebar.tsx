@@ -1,18 +1,18 @@
 "use client";
-import {
-  SidebarMenuAction,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/trpc/react";
 import { cn } from "cn";
-import { Check, Folder } from "lucide-react";
+import { Folder } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 
 const ProjectListSidebar = () => {
-  const { data: projects, status } = api.project.getProjects.useQuery();
+  const {
+    data: projects,
+    isPending,
+    isRefetching,
+  } = api.project.getProjects.useQuery();
   const pathname = usePathname();
   const params = useParams();
   const id =
@@ -24,7 +24,7 @@ const ProjectListSidebar = () => {
 
   return (
     <>
-      {status === "pending" && (
+      {isPending && !isRefetching && (
         <div className="flex flex-col space-y-2">
           <Skeleton className="h-6 w-full rounded-md" />
           <Skeleton className="h-6 w-full rounded-md" />
@@ -32,7 +32,7 @@ const ProjectListSidebar = () => {
           <Skeleton className="h-6 w-full rounded-md" />
         </div>
       )}
-      {status === "success" &&
+      {projects &&
         projects.map((project, idx) => (
           <SidebarMenuItem key={idx + project.name}>
             <SidebarMenuButton asChild>
