@@ -11,9 +11,9 @@ import superjson from "superjson";
 import z, { ZodError } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
 import { octokit } from "../github/client";
 import { sanitizeError } from "./utils";
+import { auth } from "@/lib/auth";
 
 /**
  * 1. CONTEXT
@@ -79,25 +79,16 @@ export const createTRPCRouter = t.router;
 
 // Clerk Auth Middleware
 const isAuthenticated = t.middleware(async ({ next, ctx }) => {
-  const { userId, isAuthenticated } = await auth();
-  if (!isAuthenticated || !userId) {
+  const session = await auth.api.getSession({ headers: ctx.headers });
+  if (!session) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "Unauthorized Access",
     });
   }
 
-  const user = await ctx.prisma.user.findFirst({
-    where: { clerkUserId: userId },
-  });
-  if (!user) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "Unauthorized Access",
-    });
-  }
   return next({
-    ctx: { ...ctx, user_id: user.id },
+    ctx: { ...ctx, user: session.user, session: session.session },
   });
 });
 

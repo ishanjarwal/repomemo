@@ -8,6 +8,14 @@ export const EVENTS = {
       repoUrl: string;
     }>(),
   }),
+  SEND_MAIL: eventType("app/send-mail", {
+    schema: staticSchema<{
+      from: string;
+      to: string;
+      subject: string;
+      html: string;
+    }>(),
+  }),
 };
 
 export const inngest = new Inngest({ id: "repomemo", isDev: true });

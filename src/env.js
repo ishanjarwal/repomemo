@@ -18,6 +18,10 @@ export const env = createEnv({
     GITHUB_TOKEN: z.string(),
 
     GEMINI_API_KEY: z.string(),
+
+    GOOGLE_AUTH_CLIENT_SECRET: z.string(),
+
+    RESEND_MAIL_SECRET: z.string(),
   },
 
   /**
@@ -38,6 +42,8 @@ export const env = createEnv({
     NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string(),
     NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL: z.string(),
     NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL: z.string(),
+
+    NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID: z.string(),
   },
 
   /**
@@ -65,6 +71,12 @@ export const env = createEnv({
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
 
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+
+    NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID:
+      process.env.NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID,
+    GOOGLE_AUTH_CLIENT_SECRET: process.env.GOOGLE_AUTH_CLIENT_SECRET,
+
+    RESEND_MAIL_SECRET: process.env.RESEND_MAIL_SECRET,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

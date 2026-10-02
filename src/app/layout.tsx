@@ -4,7 +4,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TRPCReactProvider } from "@/lib/trpc/react";
 import { cn } from "@/lib/utils";
-import { ClerkProvider } from "@clerk/nextjs";
 import { type Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Fira_Code, Inter, Plus_Jakarta_Sans } from "next/font/google";
@@ -52,12 +51,10 @@ export default function RootLayout({
           defaultTheme="light"
         >
           <TooltipProvider>
-            <ClerkProvider>
-              <TRPCReactProvider>
-                <Toaster richColors={true} position="top-center" />
-                {children}
-              </TRPCReactProvider>
-            </ClerkProvider>
+            <TRPCReactProvider>
+              <Toaster richColors={true} position="top-center" />
+              {children}
+            </TRPCReactProvider>
           </TooltipProvider>
         </ThemeProvider>
       </body>

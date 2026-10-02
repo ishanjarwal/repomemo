@@ -1,10 +1,12 @@
+import { resend } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
-import { repoContentLoader } from "../github/repo-content-loader";
-import { EVENTS, inngest } from "./client";
-import { generateRepoContentSummary } from "../ai/generate-repo-files-summary";
-import { generateRepoFilesSummaryEmbeddings } from "../ai/generate-repo-file-summary-embeddings";
-import { chunkArray } from "../utils";
 import { Document } from "@langchain/core/documents";
+import { generateRepoFilesSummaryEmbeddings } from "../ai/generate-repo-file-summary-embeddings";
+import { generateRepoContentSummary } from "../ai/generate-repo-files-summary";
+import { repoContentLoader } from "../github/repo-content-loader";
+import { chunkArray } from "../utils";
+import { EVENTS, inngest } from "./client";
+import { transporter } from "@/lib/nodemailer";
 
 export const createProjectJob = inngest.createFunction(
   { id: "create-project", triggers: [EVENTS.PROJECT_CREATED] },
@@ -90,6 +92,34 @@ export const createProjectJob = inngest.createFunction(
           progress: 100,
         },
       });
+    });
+  },
+);
+
+export const sendMail = inngest.createFunction(
+  {
+    id: "send-mail",
+    triggers: [EVENTS.SEND_MAIL], // all events that trigger mail
+  },
+  async ({ step, event }) => {
+    const { from, to, subject, html } = event.data;
+    await step.run("send", async () => {
+      await transporter.sendMail({
+        from,
+        to,
+        subject,
+        html,
+      });
+
+      // const { error } = await resend.emails.send({
+      //   from,
+      //   to,
+      //   subject,
+      //   html,
+      // });
+      // if (error) {
+      //   console.log(`[Mail Error] : ${error.message}`);
+      // }
     });
   },
 );

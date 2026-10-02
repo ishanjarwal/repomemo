@@ -1,13 +1,17 @@
 import ThemeToggleButton from "@/components/common/ThemeToggleButton";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { UserButton } from "@clerk/nextjs";
-import { auth } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  await auth.protect();
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    return redirect("/login");
+  }
 
   return (
     <SidebarProvider>
@@ -19,7 +23,7 @@ export default async function DashboardLayout({
           <div className="ml-auto"></div>
           <div className="flex items-center space-x-2">
             <ThemeToggleButton />
-            <UserButton />
+            {/* <UserButton /> */}
           </div>
         </div>
 

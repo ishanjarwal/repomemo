@@ -2,7 +2,6 @@
 
 import { env } from "@/env";
 import ProjectListSidebar from "@/features/project/components/project-list-sidebar";
-import { SignOutButton } from "@clerk/nextjs";
 import { cn } from "cn";
 import { CreditCard, LayoutDashboard, LogOut, Plus } from "lucide-react";
 import Image from "next/image";
@@ -23,6 +22,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "../ui/sidebar";
+import LogoutButton from "../auth/LogoutButton";
 
 const APPLICATION_MENU = [
   {
@@ -156,15 +156,7 @@ const DashboardSidebar = () => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SignOutButton>
-          <Button
-            variant={"destructive"}
-            className="group-data-[state=collapsed]:space-x-0"
-          >
-            <LogOut />
-            <span className="group-data-[state=collapsed]:hidden">Log out</span>
-          </Button>
-        </SignOutButton>
+        <LogoutButton />
       </SidebarFooter>
     </Sidebar>
   );

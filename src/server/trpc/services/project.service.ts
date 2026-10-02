@@ -34,7 +34,7 @@ export class ProjectService {
     const exists = await ctx.prisma.project.findFirst({
       where: {
         github_id: repository.id.toString(),
-        userId: ctx.user_id,
+        userId: ctx.user.id,
       },
     });
     if (exists) {
@@ -58,7 +58,7 @@ export class ProjectService {
         github_id: repository.id.toString(),
         indexedCommitSha: latestCommitSha,
         name: input.name,
-        userId: ctx.user_id,
+        userId: ctx.user.id,
         job: { create: {} },
       },
       select: {
@@ -96,10 +96,10 @@ export class ProjectService {
     };
   }
 
-  async getProjects(ctx: { prisma: typeof defaultPrisma; user_id: string }) {
+  async getProjects(ctx: ProtectedProcedureContext) {
     const projects = await ctx.prisma.project.findMany({
       where: {
-        userId: ctx.user_id,
+        userId: ctx.user.id,
       },
       select: {
         id: true,
@@ -116,7 +116,7 @@ export class ProjectService {
     const project = await ctx.prisma.project.findUnique({
       where: {
         id: input.id,
-        userId: ctx.user_id,
+        userId: ctx.user.id,
       },
       select: {
         id: true,
@@ -160,14 +160,11 @@ export class ProjectService {
     };
   }
 
-  async deleteProject(
-    ctx: { prisma: typeof defaultPrisma; user_id: string },
-    input: { id: string },
-  ) {
+  async deleteProject(ctx: ProtectedProcedureContext, input: { id: string }) {
     await ctx.prisma.project.delete({
       where: {
         id: input.id,
-        userId: ctx.user_id,
+        userId: ctx.user.id,
       },
     });
 
@@ -175,13 +172,13 @@ export class ProjectService {
   }
 
   async editProject(
-    ctx: { prisma: typeof defaultPrisma; user_id: string },
+    ctx: ProtectedProcedureContext,
     input: { id: string; name: string },
   ) {
     await ctx.prisma.project.update({
       where: {
         id: input.id,
-        userId: ctx.user_id,
+        userId: ctx.user.id,
       },
       data: {
         name: input.name,
@@ -220,7 +217,7 @@ export class ProjectService {
     input: { question: string; projectId: string },
   ) {
     const project = await ctx.prisma.project.findUnique({
-      where: { id: input.projectId, userId: ctx.user_id },
+      where: { id: input.projectId, userId: ctx.user.id },
     });
     if (!project) {
       throw new TRPCError({

@@ -22,7 +22,7 @@ export const commitRouter = createTRPCRouter({
       const project = await ctx.prisma.project.findFirst({
         where: {
           id: input.id,
-          userId: ctx.user_id,
+          userId: ctx.user.id,
         },
       });
 
