@@ -5,6 +5,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
 import { cn } from "cn";
+import ThemeToggleButton from "@/components/common/ThemeToggleButton";
 
 export default async function AuthLayout({
   children,
@@ -25,11 +26,16 @@ export default async function AuthLayout({
           )}
           maxOpacity={0.2}
         />
-        <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16">
-          <div>
-            <Link href="/" className="text-xl font-semibold tracking-tight">
-              {env.NEXT_PUBLIC_APP_NAME}.
-            </Link>
+        <div className="relative z-10 flex w-full flex-col justify-between p-12 xl:p-16">
+          <div className="flex items-center justify-between">
+            <div>
+              <Link href="/" className="text-xl font-semibold tracking-tight">
+                {env.NEXT_PUBLIC_APP_NAME}.
+              </Link>
+            </div>
+            <div>
+              <ThemeToggleButton />
+            </div>
           </div>
 
           <div className="max-w-md">

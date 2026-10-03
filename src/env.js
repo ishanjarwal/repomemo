@@ -21,6 +21,8 @@ export const env = createEnv({
 
     GOOGLE_AUTH_CLIENT_SECRET: z.string(),
 
+    GITHUB_CLIENT_SECRET: z.string(),
+
     RESEND_MAIL_SECRET: z.string(),
   },
 
@@ -44,6 +46,7 @@ export const env = createEnv({
     NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL: z.string(),
 
     NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID: z.string(),
+    NEXT_PUBLIC_GITHUB_CLIENT_ID: z.string(),
   },
 
   /**
@@ -75,6 +78,9 @@ export const env = createEnv({
     NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID:
       process.env.NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID,
     GOOGLE_AUTH_CLIENT_SECRET: process.env.GOOGLE_AUTH_CLIENT_SECRET,
+
+    NEXT_PUBLIC_GITHUB_CLIENT_ID: process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID,
+    GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
 
     RESEND_MAIL_SECRET: process.env.RESEND_MAIL_SECRET,
   },
