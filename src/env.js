@@ -12,9 +12,6 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
 
-    CLERK_SECRET_KEY: z.string(),
-    CLERK_WEBHOOK_SIGNING_SECRET: z.string(),
-
     GITHUB_TOKEN: z.string(),
 
     GEMINI_API_KEY: z.string(),
@@ -38,13 +35,6 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_NAME: z.string(),
     NEXT_PUBLIC_APP_VERSION: z.string(),
 
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
-
-    NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string(),
-    NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string(),
-    NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL: z.string(),
-    NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL: z.string(),
-
     NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID: z.string(),
     NEXT_PUBLIC_GITHUB_CLIENT_ID: z.string(),
   },
@@ -59,17 +49,8 @@ export const env = createEnv({
 
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
-    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
-    CLERK_WEBHOOK_SIGNING_SECRET: process.env.CLERK_WEBHOOK_SIGNING_SECRET,
+
     NEXT_PUBLIC_ORIGIN: process.env.NEXT_PUBLIC_ORIGIN,
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
-      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-    NEXT_PUBLIC_CLERK_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
-    NEXT_PUBLIC_CLERK_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
-    NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL:
-      process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL,
-    NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL:
-      process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL,
 
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
 

@@ -77,7 +77,7 @@ export const createCallerFactory = t.createCallerFactory;
  */
 export const createTRPCRouter = t.router;
 
-// Clerk Auth Middleware
+// Auth Middleware
 const isAuthenticated = t.middleware(async ({ next, ctx }) => {
   const session = await auth.api.getSession({ headers: ctx.headers });
   if (!session) {

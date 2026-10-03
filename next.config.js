@@ -5,8 +5,6 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {
-  allowedDevOrigins: ["noncarnivorous-unhectored-lilyanna.ngrok-free.dev"], // for clerk webooks
-};
+const config = {};
 
 export default config;
