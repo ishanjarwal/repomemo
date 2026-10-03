@@ -1,6 +1,6 @@
-import UserButton from "@/components/auth/UserButton";
+import UserButton from "@/features/auth/components/UserButton";
 import ThemeToggleButton from "@/components/common/ThemeToggleButton";
-import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
+import DashboardSidebar from "@/features/dashboard/components/dashboard-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";

@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,24 +21,12 @@ import {
   FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import GithubSignIn from "@/features/auth/components/GithubSignIn";
+import GoogleSignIn from "@/features/auth/components/GoogleSignIn";
+import { LoginFormValues, loginSchema } from "@/features/auth/schema";
 import { auth } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { FaGithub } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
-import GoogleSignIn from "@/components/auth/GoogleSignIn";
-import GithubSignIn from "@/components/auth/GithubSignIn";
-
-const loginSchema = z.object({
-  email: z.email("Enter a valid email address"),
-
-  password: z
-    .string()
-    .min(1, "Password is required")
-    .min(8, "Password must be at least 8 characters"),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();

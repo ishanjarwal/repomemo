@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { FaGithub } from "react-icons/fa";
 import { toast } from "sonner";
-import { Button } from "../ui/button";
+import { Button } from "../../../components/ui/button";
 
 const GithubSignIn = () => {
   const [loading, setLoading] = useState<boolean>(false);

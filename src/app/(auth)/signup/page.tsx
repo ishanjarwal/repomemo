@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,43 +22,12 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
-import GithubSignIn from "@/components/auth/GithubSignIn";
-import GoogleSignIn from "@/components/auth/GoogleSignIn";
+import GithubSignIn from "@/features/auth/components/GithubSignIn";
+import GoogleSignIn from "@/features/auth/components/GoogleSignIn";
+import { SignUpFormValues, signUpSchema } from "@/features/auth/schema";
 import { auth } from "@/lib/auth-client";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
-// -----------------------------------------------------------------------------
-// Validation
-// -----------------------------------------------------------------------------
-
-const signUpSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(2, "Name must be at least 2 characters")
-    .max(50, "Name must be less than 50 characters")
-    .regex(
-      /^[a-zA-Z\s'-]+$/,
-      "Name can only contain letters, spaces, apostrophes, and hyphens",
-    ),
-
-  email: z.email("Enter a valid email address"),
-
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(72, "Password must be less than 72 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(
-      /[^A-Za-z0-9]/,
-      "Password must contain at least one special character",
-    ),
-});
-
-type SignUpFormValues = z.infer<typeof signUpSchema>;
+import { toast } from "sonner";
 
 export default function SignUpPage() {
   const router = useRouter();

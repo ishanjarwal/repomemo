@@ -7,8 +7,8 @@ import { CreditCard, LayoutDashboard, LogOut, Plus, User2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
+import { Button } from "../../../components/ui/button";
+import { Separator } from "../../../components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
@@ -21,8 +21,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "../ui/sidebar";
-import LogoutButton from "../auth/LogoutButton";
+} from "../../../components/ui/sidebar";
+import LogoutButton from "../../auth/components/LogoutButton";
 
 const APPLICATION_MENU = [
   {

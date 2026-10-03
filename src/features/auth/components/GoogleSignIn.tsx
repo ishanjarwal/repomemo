@@ -1,6 +1,6 @@
 "use client";
 import { FcGoogle } from "react-icons/fc";
-import { Button } from "../ui/button";
+import { Button } from "../../../components/ui/button";
 import { auth } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useState } from "react";

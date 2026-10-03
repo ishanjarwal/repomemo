@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth-client";
 import { Loader2, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Button } from "../ui/button";
+import { Button } from "../../../components/ui/button";
 import { useState } from "react";
 
 const LogoutButton = () => {
