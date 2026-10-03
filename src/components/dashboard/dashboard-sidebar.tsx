@@ -3,7 +3,7 @@
 import { env } from "@/env";
 import ProjectListSidebar from "@/features/project/components/project-list-sidebar";
 import { cn } from "cn";
-import { CreditCard, LayoutDashboard, LogOut, Plus } from "lucide-react";
+import { CreditCard, LayoutDashboard, LogOut, Plus, User2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -37,6 +37,11 @@ const FOOTER_MENU = [
     title: "Billing",
     href: "/billing",
     icon: CreditCard,
+  },
+  {
+    title: "Account",
+    href: "/account",
+    icon: User2,
   },
 ];
 

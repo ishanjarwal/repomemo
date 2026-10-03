@@ -1,3 +1,4 @@
+import UserButton from "@/components/auth/UserButton";
 import ThemeToggleButton from "@/components/common/ThemeToggleButton";
 import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -23,7 +24,7 @@ export default async function DashboardLayout({
           <div className="ml-auto"></div>
           <div className="flex items-center space-x-2">
             <ThemeToggleButton />
-            {/* <UserButton /> */}
+            <UserButton />
           </div>
         </div>
 
