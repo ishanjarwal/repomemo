@@ -1,7 +1,10 @@
+import { env } from "@/env";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
+import { cn } from "cn";
 
 export default async function AuthLayout({
   children,
@@ -14,22 +17,23 @@ export default async function AuthLayout({
   return (
     <main className="bg-muted/30 relative flex min-h-screen overflow-hidden">
       {/* Decorative side panel */}
-      <div className="bg-foreground text-background relative hidden w-[45%] overflow-hidden lg:flex">
-        <div className="absolute inset-0">
-          <div className="border-background/10 absolute -top-24 -left-24 size-80 rounded-full border" />
-          <div className="border-background/10 absolute -right-24 -bottom-32 size-[28rem] rounded-full border" />
-          <div className="border-background/5 absolute top-1/2 left-1/2 size-64 -translate-x-1/2 -translate-y-1/2 rounded-full border" />
-        </div>
-
+      <div className="bg-background relative hidden w-[45%] overflow-hidden lg:flex">
+        <AnimatedGridPattern
+          className={cn(
+            "mask-[radial-gradient(500px_circle_at_center,white,transparent)]",
+            "inset-x-0 inset-y-[-30%] h-[200%] skew-y-12",
+          )}
+          maxOpacity={0.2}
+        />
         <div className="relative z-10 flex flex-col justify-between p-12 xl:p-16">
           <div>
             <Link href="/" className="text-xl font-semibold tracking-tight">
-              RepoMemo<span className="text-muted-foreground">.</span>
+              {env.NEXT_PUBLIC_APP_NAME}.
             </Link>
           </div>
 
           <div className="max-w-md">
-            <p className="text-background/50 mb-6 text-sm font-medium tracking-[0.25em] uppercase">
+            <p className="text-muted-foreground mb-6 text-sm font-medium tracking-[0.25em] uppercase">
               Understand your codebase
             </p>
 
@@ -39,13 +43,13 @@ export default async function AuthLayout({
               finally searchable.
             </h1>
 
-            <p className="text-background/60 mt-6 max-w-sm text-sm leading-6">
+            <p className="text-muted-foreground mt-6 max-w-sm text-sm leading-6">
               Ask questions about your code, understand changes, and navigate
               your repository with AI.
             </p>
           </div>
 
-          <p className="text-background/40 text-xs">
+          <p className="text-muted-foreground text-xs">
             Built for developers who want to spend less time searching.
           </p>
         </div>
@@ -55,7 +59,7 @@ export default async function AuthLayout({
       <div className="flex flex-1 items-center justify-center px-5 py-10 sm:px-8">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
-          <div className="mb-8 lg:hidden">
+          <div className="mb-8 px-3 lg:hidden">
             <Link href="/" className="text-xl font-semibold tracking-tight">
               RepoMemo<span className="text-muted-foreground">.</span>
             </Link>
