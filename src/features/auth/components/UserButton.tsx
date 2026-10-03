@@ -14,16 +14,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { auth } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
-const UserButton = () => {
+type Props = {
+  initialSession: typeof auth.$Infer.Session | null;
+};
+
+const UserButton = ({ initialSession }: Props) => {
   const router = useRouter();
 
-  const { data: session, isPending } = auth.useSession();
+  auth.hydrateSession(initialSession);
+  const { data, isPending, isRefetching } = auth.useSession();
+  const session = isPending && !isRefetching ? initialSession : data;
 
   if (isPending) {
     return <Skeleton className="size-8 rounded-full" />;
   }
 
-  if (!session?.user) {
+  if (!session) {
     return null;
   }
 

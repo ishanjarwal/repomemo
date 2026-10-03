@@ -1,7 +1,15 @@
 import { env } from "@/env";
 import NewProjectForm from "@/features/project/components/new-project-form";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-const NewProjectFormPage = () => {
+const NewProjectFormPage = async () => {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    return redirect("/login");
+  }
+
   return (
     <div className="">
       <div>

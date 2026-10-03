@@ -75,7 +75,7 @@ const AnswerList = ({ projectId }: { projectId: string }) => {
                 >
                   <div className="min-w-0 flex-1 space-y-1.5">
                     <h3 className="truncate text-sm font-medium">
-                      {answer.question}
+                      {answer.title}
                     </h3>
 
                     <p className="text-muted-foreground line-clamp-2 text-sm leading-6 font-normal">

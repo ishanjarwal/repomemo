@@ -5,7 +5,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { z } from "zod";
 
 const FileSummarySchema = z.object({
-  source: z.string().describe("The original provided file path source as is"),
+  // source: z.string().describe("The original provided file path source as is"),
   summary: z
     .string()
     .min(50)
@@ -55,5 +55,10 @@ export async function generateRepoContentSummary(docs: Document[]) {
     ),
   });
 
-  return result;
+  const r = docs.map((doc, idx) => ({
+    source: doc.metadata.source,
+    summary: result[idx].summary,
+  }));
+
+  return r;
 }

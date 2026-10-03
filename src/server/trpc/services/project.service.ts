@@ -344,7 +344,7 @@ export class ProjectService {
   }
 
   async getAnswers(
-    ctx: { prisma: typeof defaultPrisma },
+    ctx: ProtectedProcedureContext,
     input: { projectId: string; cursor?: number | null },
   ) {
     const page = input.cursor ?? 1;
@@ -356,6 +356,7 @@ export class ProjectService {
       select: {
         id: true,
         question: true,
+        title: true,
         answer: true,
         createdAt: true,
       },
