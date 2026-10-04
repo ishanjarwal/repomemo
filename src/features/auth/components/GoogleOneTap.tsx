@@ -1,22 +1,19 @@
 "use client";
 
+import { useEffect } from "react";
 import { auth } from "@/lib/auth-client";
-import { useEffect, useRef } from "react";
 
-const GoogleOneTap = () => {
-  const triggered = useRef(false);
+function GoogleOneTap() {
+  const { data: session, isPending } = auth.useSession();
 
   useEffect(() => {
-    if (triggered.current) return;
-
-    triggered.current = true;
-
-    auth.oneTap().catch((error) => {
-      console.error("Google One Tap failed:", error);
-    });
-  }, []);
+    if (!isPending && !session) {
+      auth.oneTap().catch((err) => {
+        console.error("One Tap auto-prompt failed or skipped:", err);
+      });
+    }
+  }, [session, isPending]);
 
   return null;
-};
-
+}
 export default GoogleOneTap;
