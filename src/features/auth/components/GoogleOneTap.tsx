@@ -3,9 +3,14 @@
 import { useEffect } from "react";
 import { auth } from "@/lib/auth-client";
 
-function GoogleOneTap() {
-  const { data: session, isPending } = auth.useSession();
+type Props = {
+  initialSession: typeof auth.$Infer.Session | null;
+};
 
+function GoogleOneTap({ initialSession }: Props) {
+  auth.hydrateSession(initialSession);
+  const { data, isPending, isRefetching } = auth.useSession();
+  const session = isPending && !isRefetching ? initialSession : data;
   useEffect(() => {
     if (!isPending && !session) {
       auth.oneTap().catch((err) => {
