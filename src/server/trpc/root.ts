@@ -1,5 +1,4 @@
 import { accountRouter } from "./routers/account.router";
-import { commitRouter } from "./routers/commit.router";
 import { projectRouter } from "./routers/project.router";
 import { createCallerFactory, createTRPCRouter } from "./trpc";
 
@@ -10,7 +9,6 @@ import { createCallerFactory, createTRPCRouter } from "./trpc";
  */
 export const appRouter = createTRPCRouter({
   project: projectRouter,
-  commit: commitRouter,
   account: accountRouter,
 });
 

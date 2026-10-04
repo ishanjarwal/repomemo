@@ -104,7 +104,6 @@ model Project {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  commits Commit[]
   answers Answer[]
 
   job ProjectJob?
@@ -119,23 +118,6 @@ model Project {
   @@index([userId])
   @@index([userId, deletedAt])
   @@map("projects")
-}
-
-model Commit {
-  id String @id @default(cuid())
-
-  // Git commit SHA — prevents duplicate commits
-  sha String
-
-  aiSummary       String?
-  aiSummaryStatus AISummaryStatus @default(PENDING)
-
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, sha])
-  @@index([projectId])
-  @@map("commits")
 }
 
 enum AISummaryStatus {

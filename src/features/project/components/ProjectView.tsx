@@ -132,8 +132,6 @@ export const ProjectView = ({ id }: ProjectViewProps) => {
       />
 
       <PreviousAnswersSection projectId={id} />
-
-      {/* <CommitLog id={project.id} /> */}
     </div>
   );
 };
