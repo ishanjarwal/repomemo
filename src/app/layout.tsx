@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { type Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Fira_Code, Inter, Plus_Jakarta_Sans } from "next/font/google";
+import GoogleOneTap from "@/features/auth/components/GoogleOneTap";
 
 export const metadata: Metadata = {
   title: "RepoMemo",
@@ -45,6 +46,7 @@ export default function RootLayout({
       )}
     >
       <body>
+        <GoogleOneTap />
         <ThemeProvider
           attribute="class"
           enableSystem={false}
