@@ -1,3 +1,4 @@
+import CustomerPortalButton from "@/features/billing/components/CustomerPortalButton";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -7,7 +8,11 @@ const BillingPage = async () => {
   if (!session) {
     return redirect("/login");
   }
-  return <div>Billing</div>;
+  return (
+    <div>
+      <CustomerPortalButton />
+    </div>
+  );
 };
 
 export default BillingPage;

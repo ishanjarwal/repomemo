@@ -8,6 +8,8 @@ import { type Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Fira_Code, Inter, Plus_Jakarta_Sans } from "next/font/google";
 import GoogleOneTap from "@/features/auth/components/GoogleOneTap";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "RepoMemo",
@@ -30,11 +32,13 @@ const firaCode = Fira_Code({
   variable: "--font-code",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth.api.getSession({ headers: await headers() });
+
   return (
     <html
       lang="en"
@@ -46,7 +50,7 @@ export default function RootLayout({
       )}
     >
       <body>
-        <GoogleOneTap />
+        <GoogleOneTap initialSession={session} />
         <ThemeProvider
           attribute="class"
           enableSystem={false}

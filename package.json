@@ -28,6 +28,8 @@
     "@langchain/community": "^1.1.29",
     "@langchain/core": "^1.2.11",
     "@langchain/google-genai": "^2.3.2",
+    "@polar-sh/checkout": "^0.4.2",
+    "@polar-sh/sdk": "^1.0.2",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@shadcn/react": "^0.3.1",

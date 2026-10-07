@@ -8,6 +8,7 @@ import { existingUserSignUpTemplate } from "./email_templates/existing-user";
 import { resetPasswordTemplate } from "./email_templates/reset-password";
 import { resetPasswordSuccessTemplate } from "./email_templates/reset-password-success";
 import { verifyEmailTemplate } from "./email_templates/verify-email";
+import { polar } from "./polar";
 
 export const auth = betterAuth({
   emailAndPassword: {
@@ -81,8 +82,13 @@ export const auth = betterAuth({
                 userId: user.id,
               },
             });
+
+            await polar.customers.create({
+              email: user.email,
+              name: user.name,
+              external_id: user.id,
+            });
           } catch (error) {
-            console.log(`Credit record creation failed for user ${user.id}`);
             console.log(error);
           }
         },

@@ -21,6 +21,20 @@ export const env = createEnv({
     GITHUB_CLIENT_SECRET: z.string(),
 
     RESEND_MAIL_SECRET: z.string(),
+
+    POLAR_ACCESS_TOKEN: z.string(),
+    POLAR_ORGANIZATION_ID: z.string(),
+    POLAR_ENVIRONMENT: z.enum(["production", "sandbox"]),
+    POLAR_WEBHOOK_SECRET: z.string(),
+
+    POLAR_PRODUCT_ID_100: z.string(),
+    POLAR_PRODUCT_ID_250: z.string(),
+    POLAR_PRODUCT_ID_500: z.string(),
+    POLAR_PRODUCT_ID_1000: z.string(),
+    POLAR_PRODUCT_ID_5000: z.string(),
+    POLAR_PRODUCT_ID_10000: z.string(),
+
+    POLAR_FEATURE_USAGE_METER_ID: z.string(),
   },
 
   /**
@@ -64,6 +78,20 @@ export const env = createEnv({
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
 
     RESEND_MAIL_SECRET: process.env.RESEND_MAIL_SECRET,
+
+    POLAR_ACCESS_TOKEN: process.env.POLAR_ACCESS_TOKEN,
+    POLAR_ORGANIZATION_ID: process.env.POLAR_ORGANIZATION_ID,
+    POLAR_ENVIRONMENT: process.env.POLAR_ENVIRONMENT,
+    POLAR_WEBHOOK_SECRET: process.env.POLAR_WEBHOOK_SECRET,
+
+    POLAR_PRODUCT_ID_100: process.env.POLAR_PRODUCT_ID_100,
+    POLAR_PRODUCT_ID_250: process.env.POLAR_PRODUCT_ID_250,
+    POLAR_PRODUCT_ID_500: process.env.POLAR_PRODUCT_ID_500,
+    POLAR_PRODUCT_ID_1000: process.env.POLAR_PRODUCT_ID_1000,
+    POLAR_PRODUCT_ID_5000: process.env.POLAR_PRODUCT_ID_5000,
+    POLAR_PRODUCT_ID_10000: process.env.POLAR_PRODUCT_ID_10000,
+
+    POLAR_FEATURE_USAGE_METER_ID: process.env.POLAR_FEATURE_USAGE_METER_ID,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

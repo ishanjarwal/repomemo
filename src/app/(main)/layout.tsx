@@ -1,7 +1,8 @@
-import UserButton from "@/features/auth/components/UserButton";
 import ThemeToggleButton from "@/components/common/ThemeToggleButton";
-import DashboardSidebar from "@/features/dashboard/components/dashboard-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import UserButton from "@/features/auth/components/UserButton";
+import Credits from "@/features/billing/components/Credits";
+import DashboardSidebar from "@/features/dashboard/components/dashboard-sidebar";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -23,6 +24,7 @@ export default async function DashboardLayout({
           <SidebarTrigger />
           <div className="ml-auto"></div>
           <div className="flex items-center space-x-2">
+            <Credits initialSession={session} />
             <ThemeToggleButton />
             <UserButton initialSession={session} />
           </div>

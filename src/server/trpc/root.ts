@@ -1,4 +1,5 @@
 import { accountRouter } from "./routers/account.router";
+import { billingRouter } from "./routers/billing.router";
 import { projectRouter } from "./routers/project.router";
 import { createCallerFactory, createTRPCRouter } from "./trpc";
 
@@ -10,6 +11,7 @@ import { createCallerFactory, createTRPCRouter } from "./trpc";
 export const appRouter = createTRPCRouter({
   project: projectRouter,
   account: accountRouter,
+  billing: billingRouter,
 });
 
 // export type definition of API

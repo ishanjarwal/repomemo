@@ -7,17 +7,13 @@ import { EVENTS, inngest } from "@/server/inngest/client";
 import { parseGitHubUrl, prepareQueryContext } from "@/server/utils";
 import { components } from "@octokit/openapi-types";
 import { Endpoints } from "@octokit/types";
-import { inferProcedureBuilderResolverOptions, TRPCError } from "@trpc/server";
+import { TRPCError } from "@trpc/server";
 import { remark } from "remark";
 import stripMarkdown from "strip-markdown";
 import z from "zod";
-import { protectedProcedure } from "../trpc";
+import { ProtectedProcedureContext } from "../types";
 
 const ANSWERS_PER_PAGE = 10;
-
-type ProtectedProcedureContext = inferProcedureBuilderResolverOptions<
-  typeof protectedProcedure
->["ctx"];
 
 export class ProjectService {
   async createProject(
