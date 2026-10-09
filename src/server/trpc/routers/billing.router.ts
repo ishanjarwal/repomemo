@@ -17,4 +17,14 @@ export const billingRouter = createTRPCRouter({
   getAvailableCredits: protectedProcedure.query(async ({ ctx }) => {
     return await billingService.getAvailableCredits(ctx);
   }),
+
+  verifyPayment: protectedProcedure
+    .input(
+      z.object({
+        checkoutId: z.string().min(1),
+      }),
+    )
+    .query(async ({ input }) => {
+      return await billingService.verifyPayment(input);
+    }),
 });
