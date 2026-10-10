@@ -52,3 +52,6 @@ generated/prisma
 
 # don't commit assets
 /public
+
+# docker persistent volumes
+/docker-data
