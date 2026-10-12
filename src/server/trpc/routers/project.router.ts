@@ -1,11 +1,21 @@
-import { NewProjectSchema, QuestionSchema } from "@/features/project/schema";
+import {
+  NewProjectSchema,
+  ProjectConfirmationSchema,
+  QuestionSchema,
+} from "@/features/project/schema";
 import z from "zod";
 import { projectService } from "../services/project.service";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const projectRouter = createTRPCRouter({
-  createProject: protectedProcedure
+  preCreate: protectedProcedure
     .input(NewProjectSchema)
+    .mutation(async ({ ctx, input }) => {
+      return projectService.preCreate(ctx, input);
+    }),
+
+  createProject: protectedProcedure
+    .input(ProjectConfirmationSchema)
     .mutation(async ({ ctx, input }) => {
       return projectService.createProject(ctx, input);
     }),

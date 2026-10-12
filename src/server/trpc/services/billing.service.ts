@@ -46,12 +46,8 @@ class BillingService {
     const meter = state.active_meters.find(
       (meter) => meter.meter_id === env.POLAR_FEATURE_USAGE_METER_ID,
     );
-    console.log(meter);
     if (!meter) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Something went wrong",
-      });
+      return 0;
     }
 
     return meter.balance;

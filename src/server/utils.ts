@@ -1,29 +1,32 @@
+import { Octokit } from "octokit";
+import { PROJECT_SIZE, ProjectSize } from "./constants";
+
 /**
  * Validates the provided github url for url schema, throws error if invalid
  * @param githubUrl
  */
 export function parseGitHubUrl(githubUrl: string) {
-  try {
-    const url = new URL(githubUrl);
+  const url = new URL(githubUrl);
 
-    // Only allow github.com URLs
-    if (url.hostname !== "github.com") {
-      throw new Error("Invalid GitHub URL");
-    }
-
-    const parts = url.pathname.split("/").filter(Boolean);
-
-    if (parts.length < 2) {
-      throw new Error("Invalid GitHub repository URL");
-    }
-
-    const owner = parts[0];
-    const repo = parts[1].replace(/\.git$/, "");
-
-    return { owner, repo };
-  } catch {
-    throw new Error("Invalid GitHub repository URL");
+  // Only allow github.com URLs
+  if (url.hostname !== "github.com") {
+    return null;
   }
+
+  const parts = url.pathname.split("/").filter(Boolean);
+
+  if (parts.length < 2) {
+    return null;
+  }
+
+  const owner = parts[0];
+  const repo = parts[1].replace(/\.git$/, "");
+
+  if (!owner || !repo) {
+    return null;
+  }
+
+  return { owner, repo };
 }
 
 export function chunkArray<T>(arr: T[], size: number = 5): T[][] {
@@ -47,4 +50,21 @@ export function prepareQueryContext(files: { source: string; code: string }[]) {
   }
 
   return ctx;
+}
+
+export const getProjectSize = (fileCount: number): ProjectSize => {
+  if (fileCount <= PROJECT_SIZE.small.maxFiles) return "small";
+  if (fileCount <= PROJECT_SIZE.medium.maxFiles) return "medium";
+
+  return "large";
+};
+
+export async function verifyPrivateRepo(token: string) {
+  const octokit = new Octokit({ auth: token });
+  try {
+    const { data } = await octokit.rest.users.getAuthenticated();
+    return true;
+  } catch (error) {
+    return false;
+  }
 }

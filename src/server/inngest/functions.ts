@@ -7,6 +7,7 @@ import { repoContentLoader } from "../github/repo-content-loader";
 import { chunkArray } from "../utils";
 import { EVENTS, inngest } from "./client";
 import { transporter } from "@/lib/nodemailer";
+import { cron } from "inngest";
 
 export const createProjectJob = inngest.createFunction(
   { id: "create-project", triggers: [EVENTS.PROJECT_CREATED] },
@@ -22,7 +23,7 @@ export const createProjectJob = inngest.createFunction(
     });
 
     const chunkedDocs = await step.run("load-repo-contents", async () => {
-      const docs = await repoContentLoader(event.data.repoUrl);
+      const docs = await repoContentLoader(event.data.repoUrl, event.data.sha);
       const chunked = chunkArray<Document>(docs, 8);
       return chunked;
     });
@@ -121,5 +122,31 @@ export const sendMail = inngest.createFunction(
       //   console.log(`[Mail Error] : ${error.message}`);
       // }
     });
+  },
+);
+
+export const cleanupOrphanedProjectCreateSessions = inngest.createFunction(
+  {
+    id: "cleanup-orphaned-project-create-sessions",
+    //every day at midnight)
+    triggers: [cron("0 0 * * *")],
+  },
+  async ({ step }) => {
+    const result = await step.run(
+      "initiate-delete-orphaned-project-create-sessions",
+      async () => {
+        const deleted = await prisma.projectCreateSession.deleteMany({
+          where: {
+            createdAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) }, // 1 day
+          },
+        });
+
+        return { count: deleted.count };
+      },
+    );
+
+    return {
+      message: `Successfully deleted ${result.count} orphaned projectCreateSession documents.`,
+    };
   },
 );

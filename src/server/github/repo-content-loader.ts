@@ -1,10 +1,14 @@
 import { env } from "@/env";
 import { GithubRepoLoader } from "@langchain/community/document_loaders/web/github";
 
-export const repoContentLoader = async (url: string, token?: string) => {
+export const repoContentLoader = async (
+  url: string,
+  sha: string,
+  token?: string,
+) => {
   const loader = new GithubRepoLoader(url, {
     accessToken: token || env.GITHUB_TOKEN,
-    branch: "main",
+    branch: sha,
     recursive: true,
     maxConcurrency: 5,
     ignoreFiles: [

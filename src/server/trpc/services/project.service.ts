@@ -1,35 +1,140 @@
-import { NewProjectSchema } from "@/features/project/schema";
+import {
+  NewProjectFormOutput,
+  ProjectConfirmationOutput,
+} from "@/features/project/schema";
 import { prisma as defaultPrisma } from "@/lib/prisma";
 import { generateAnswer } from "@/server/ai/generate-answer";
 import { generateQueryEmbedding } from "@/server/ai/generate-query-embedding";
+import { PROJECT_SIZE } from "@/server/constants";
 import { octokit as defaultOctokit } from "@/server/github/client";
 import { EVENTS, inngest } from "@/server/inngest/client";
-import { parseGitHubUrl, prepareQueryContext } from "@/server/utils";
+import {
+  getProjectSize,
+  parseGitHubUrl,
+  prepareQueryContext,
+  verifyPrivateRepo,
+} from "@/server/utils";
 import { components } from "@octokit/openapi-types";
 import { Endpoints } from "@octokit/types";
 import { TRPCError } from "@trpc/server";
 import { remark } from "remark";
 import stripMarkdown from "strip-markdown";
-import z from "zod";
 import { ProtectedProcedureContext } from "../types";
 
 const ANSWERS_PER_PAGE = 10;
 
 export class ProjectService {
-  async createProject(
-    ctx: ProtectedProcedureContext,
-    input: z.infer<typeof NewProjectSchema>,
-  ) {
-    const { owner, repo } = parseGitHubUrl(input.github_url);
-    const { data: repository } = await ctx.octokit.rest.repos.get({
+  async preCreate(ctx: ProtectedProcedureContext, input: NewProjectFormOutput) {
+    const parsed = parseGitHubUrl(input.github_url);
+
+    if (!parsed) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Invalid GitHub repository URL.",
+      });
+    }
+
+    const { owner, repo } = parsed;
+
+    // Verify that the repository exists and get its metadata.
+    let repository;
+
+    try {
+      const { data } = await ctx.octokit.rest.repos.get({
+        owner,
+        repo,
+      });
+
+      repository = data;
+    } catch (error) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "GitHub repository not found or you don't have access to it.",
+      });
+    }
+
+    // Get the default branch's commit/tree.
+    const { data: branch } = await ctx.octokit.rest.repos.getBranch({
       owner,
       repo,
+      branch: repository.default_branch,
     });
 
-    // Check unique constraint on userId and github_id to prevent duplicate project creation
+    const treeSha = branch.commit.sha;
+
+    // Fetch the complete tree recursively for fileCount
+    const { data: tree } = await ctx.octokit.rest.git.getTree({
+      owner,
+      repo,
+      tree_sha: treeSha,
+      recursive: "true",
+    });
+
+    // A blob represents a file; a tree represents a directory.
+    const fileCount = tree.tree.filter((item) => item.type === "blob").length;
+
+    // Don't charge based on an incomplete count.
+    if (tree.truncated) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "This repository is too large to analyze automatically. Please choose a smaller repository.",
+      });
+    }
+
+    // for large repos, charge 1 credit per file otherwise use the constants
+    const size = getProjectSize(fileCount);
+    const credits = size === "large" ? fileCount : PROJECT_SIZE[size].credits;
+
+    // ! Important - run a scheduler to delete orphaned sessions automatically
+    const createSession = await ctx.prisma.projectCreateSession.create({
+      data: {
+        userId: ctx.user.id,
+        credits,
+        defaultBranch: branch.name,
+        fileCount,
+        isPrivate: repository.private,
+        projectName: input.name,
+        treeSha,
+        repo: repository.name,
+        owner: repository.owner.login,
+        repoId: repository.id.toString(),
+        status: "PENDING",
+      },
+    });
+
+    return {
+      create_session_id: createSession.id,
+      projectName: createSession.projectName,
+      credits,
+      repository: {
+        owner: repository.owner.login,
+        repo: repository.name,
+        description: repository.description || "",
+        isPrivate: repository.private,
+        defaultBranch: repository.default_branch,
+        avatar_url: repository.owner.avatar_url,
+      },
+    };
+  }
+
+  async createProject(
+    ctx: ProtectedProcedureContext,
+    input: ProjectConfirmationOutput,
+  ) {
+    const createSession = await ctx.prisma.projectCreateSession.findUnique({
+      where: { id: input.create_session_id, status: "PENDING" },
+    });
+    if (!createSession) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Your session might have expired. Please create a new Project",
+      });
+    }
+
     const exists = await ctx.prisma.project.findFirst({
       where: {
-        github_id: repository.id.toString(),
+        github_id: createSession.repoId,
         userId: ctx.user.id,
       },
     });
@@ -41,19 +146,31 @@ export class ProjectService {
       });
     }
 
-    const { data: branch } = await ctx.octokit.rest.repos.getBranch({
-      owner,
-      repo,
-      branch: repository.default_branch,
-    });
+    if (createSession.isPrivate) {
+      if (!input.personal_access_token) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "This repository is private. Please provide the Personal Access Token",
+        });
+      } else {
+        const check = await verifyPrivateRepo(input.personal_access_token);
+        if (!check) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Provided Personal Access Token is Invalid",
+          });
+        }
+      }
+    }
 
-    const latestCommitSha = branch.commit.sha;
-
+    const { repoId, projectName, treeSha, isPrivate, credits, owner, repo } =
+      createSession;
     const project = await ctx.prisma.project.create({
       data: {
-        github_id: repository.id.toString(),
-        indexedCommitSha: latestCommitSha,
-        name: input.name,
+        github_id: repoId,
+        indexedCommitSha: treeSha,
+        name: projectName,
         userId: ctx.user.id,
         job: { create: {} },
       },
@@ -65,31 +182,21 @@ export class ProjectService {
       },
     });
 
-    const {
-      name,
-      private: isPrivate,
-      html_url,
-      owner: repoOwnwer,
-    } = repository;
-
     await inngest.send(
       EVENTS.PROJECT_CREATED.create({
         jobId: project.job!.id,
         projectId: project.id,
-        repoUrl: html_url,
+        repoUrl: `https://github.com/${owner}/${repo}`,
+        sha: treeSha,
       }),
     );
 
-    return {
-      ...project,
-      repo: name as string,
-      isPrivate: isPrivate as boolean,
-      url: html_url as string,
-      owner: {
-        username: repoOwnwer.login as string,
-        avatar_url: repoOwnwer.avatar_url as string,
-      },
-    };
+    await ctx.prisma.projectCreateSession.update({
+      where: { id: input.create_session_id },
+      data: { status: "CONSUMED" },
+    });
+
+    return project.id;
   }
 
   async getProjects(ctx: ProtectedProcedureContext) {

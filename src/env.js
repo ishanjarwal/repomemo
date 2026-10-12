@@ -35,6 +35,8 @@ export const env = createEnv({
     POLAR_PRODUCT_ID_10000: z.string(),
 
     POLAR_FEATURE_USAGE_METER_ID: z.string(),
+
+    REDIS_URL: z.string(),
   },
 
   /**
@@ -92,6 +94,8 @@ export const env = createEnv({
     POLAR_PRODUCT_ID_10000: process.env.POLAR_PRODUCT_ID_10000,
 
     POLAR_FEATURE_USAGE_METER_ID: process.env.POLAR_FEATURE_USAGE_METER_ID,
+
+    REDIS_URL: process.env.REDIS_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

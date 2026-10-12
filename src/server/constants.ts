@@ -28,3 +28,15 @@ export const BILLING_PACKS = [
 ] as const;
 
 export const BILLING_PACK_SLUG = BILLING_PACKS.map((el) => el.slug);
+
+export const PROJECT_SIZE = {
+  small: {
+    maxFiles: 100,
+    credits: 50,
+  },
+  medium: {
+    maxFiles: 1_000,
+    credits: 100,
+  },
+} as const;
+export type ProjectSize = "small" | "medium" | "large";

@@ -6,6 +6,7 @@ export const EVENTS = {
       jobId: string;
       projectId: string;
       repoUrl: string;
+      sha: string;
     }>(),
   }),
   SEND_MAIL: eventType("app/send-mail", {

@@ -11,8 +11,8 @@ const NewProjectFormPage = async () => {
   }
 
   return (
-    <div className="">
-      <div>
+    <div className="pt-8">
+      <div className="mx-auto w-full max-w-2xl">
         <div className="space-y-2">
           <h1 className="text-4xl font-semibold">New Project</h1>
           <p className="text-muted-foreground text-sm">
