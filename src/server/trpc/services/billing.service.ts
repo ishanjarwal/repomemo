@@ -36,21 +36,24 @@ class BillingService {
   async getCustomerPortal(ctx: ProtectedProcedureContext) {
     const result = await polar.customerSessions.create({
       external_customer_id: ctx.user.id,
+      return_url: `${env.NEXT_PUBLIC_ORIGIN}/dashboard`,
     });
 
     return result.customer_portal_url;
   }
 
   async getAvailableCredits(ctx: ProtectedProcedureContext) {
-    const state = await polar.customers.getStateExternal(ctx.user.id);
-    const meter = state.active_meters.find(
-      (meter) => meter.meter_id === env.POLAR_FEATURE_USAGE_METER_ID,
-    );
-    if (!meter) {
-      return 0;
+    const r = await ctx.prisma.credits.findUnique({
+      where: { userId: ctx.user.id },
+    });
+    if (!r) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Couldn't find credits for this user.",
+      });
     }
 
-    return meter.balance;
+    return r.credits;
   }
 
   async verifyPayment(input: { checkoutId: string }) {
@@ -75,11 +78,16 @@ class BillingService {
       });
     }
 
-    // Only expose the information that the success page actually needs.
-    const benefit = checkout.product?.benefits[0];
+    const creditUnits = BILLING_PACKS.find(
+      (pack) => pack.id === checkout.product_id,
+    )?.credits;
 
-    const creditUnits =
-      benefit?.type === "meter_credit" ? benefit.properties.units : 0;
+    if (!creditUnits) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Couldn't get credits right now. Please try again later.",
+      });
+    }
 
     return {
       amount: checkout.total_amount,

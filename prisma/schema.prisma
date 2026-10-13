@@ -82,7 +82,7 @@ model Verification {
 model Credits {
   id String @id @default(cuid())
 
-  credits Int @default(150)
+  credits Int @default(25)
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

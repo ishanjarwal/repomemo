@@ -23,6 +23,7 @@ import {
   useSidebar,
 } from "../../../components/ui/sidebar";
 import LogoutButton from "../../auth/components/LogoutButton";
+import CustomerPortalButton from "@/features/billing/components/CustomerPortalButton";
 
 const APPLICATION_MENU = [
   {
@@ -33,11 +34,6 @@ const APPLICATION_MENU = [
 ];
 
 const FOOTER_MENU = [
-  {
-    title: "Billing",
-    href: "/billing",
-    icon: CreditCard,
-  },
   {
     title: "Account",
     href: "/account",
@@ -142,6 +138,11 @@ const DashboardSidebar = () => {
           <SidebarGroupLabel>Settings</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <CustomerPortalButton />
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               {FOOTER_MENU.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton asChild>

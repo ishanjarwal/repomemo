@@ -72,6 +72,7 @@ const CreateProjectConfirmation = ({
       onSuccess: (id) => {
         toast.success("Project queued");
         apiUtils.project.getProjects.invalidate();
+        apiUtils.billing.getAvailableCredits.invalidate();
         router.push(`/project/${id}`);
       },
       onError(error) {

@@ -2,6 +2,7 @@
 
 import {
   ArrowUp,
+  Coins,
   Command,
   FileCode2,
   GitBranch,
@@ -22,6 +23,7 @@ import { Controller, useForm } from "react-hook-form";
 import { FaGithub } from "react-icons/fa";
 import { QuestionSchema, QuestionValues } from "../schema";
 import { toast } from "sonner";
+import { RiCoinFill } from "react-icons/ri";
 
 interface QuestionBoxProps {
   projectId: string;
@@ -55,6 +57,7 @@ export function QuestionBox({
     onSuccess(data) {
       updateSearchParams({ answerId: data });
       apiUtils.project.getAnswers.refetch();
+      apiUtils.billing.getAvailableCredits.invalidate();
       form.reset();
     },
     onError(error) {
@@ -180,8 +183,8 @@ export function QuestionBox({
                 </TooltipProvider> */}
 
                 <div className="text-muted-foreground hidden items-center gap-2 pl-2 text-xs sm:flex">
-                  <FileCode2 className="size-4" />
-                  <span>Repository context enabled</span>
+                  <RiCoinFill className="size-4" />
+                  <span>Each query consumes just 1 credit</span>
                 </div>
               </div>
 

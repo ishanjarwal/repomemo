@@ -9,6 +9,8 @@ import { PROJECT_SIZE } from "@/server/constants";
 import { octokit as defaultOctokit } from "@/server/github/client";
 import { EVENTS, inngest } from "@/server/inngest/client";
 import {
+  checkCredits,
+  consumeCredits,
   getProjectSize,
   parseGitHubUrl,
   prepareQueryContext,
@@ -166,6 +168,10 @@ export class ProjectService {
 
     const { repoId, projectName, treeSha, isPrivate, credits, owner, repo } =
       createSession;
+
+    // check if the user has enough credits
+    await checkCredits(credits, ctx.user.id);
+
     const project = await ctx.prisma.project.create({
       data: {
         github_id: repoId,
@@ -195,6 +201,8 @@ export class ProjectService {
       where: { id: input.create_session_id },
       data: { status: "CONSUMED" },
     });
+
+    await consumeCredits(credits, ctx.user.id);
 
     return project.id;
   }
@@ -329,6 +337,9 @@ export class ProjectService {
       });
     }
 
+    // check if the user has enough credits (query uses 1 credit)
+    await checkCredits(1, ctx.user.id);
+
     type Repository = components["schemas"]["full-repository"];
 
     const { github_id, indexedCommitSha } = project;
@@ -395,6 +406,9 @@ export class ProjectService {
         sources: generated.files,
       },
     });
+
+    // consume 1 credit
+    await consumeCredits(1, ctx.user.id);
 
     return saved.id;
   }

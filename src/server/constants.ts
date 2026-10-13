@@ -4,26 +4,32 @@ export const BILLING_PACKS = [
   {
     slug: "100",
     id: env.POLAR_PRODUCT_ID_100,
+    credits: 100,
   },
   {
     slug: "250",
     id: env.POLAR_PRODUCT_ID_250,
+    credits: 250,
   },
   {
     slug: "500",
     id: env.POLAR_PRODUCT_ID_500,
+    credits: 500,
   },
   {
     slug: "1000",
     id: env.POLAR_PRODUCT_ID_1000,
+    credits: 1000,
   },
   {
     slug: "5000",
     id: env.POLAR_PRODUCT_ID_5000,
+    credits: 5000,
   },
   {
     slug: "10000",
     id: env.POLAR_PRODUCT_ID_10000,
+    credits: 10000,
   },
 ] as const;
 

@@ -1,5 +1,7 @@
 import { Octokit } from "octokit";
 import { PROJECT_SIZE, ProjectSize } from "./constants";
+import { prisma } from "@/lib/prisma";
+import { TRPCError } from "@trpc/server";
 
 /**
  * Validates the provided github url for url schema, throws error if invalid
@@ -67,4 +69,28 @@ export async function verifyPrivateRepo(token: string) {
   } catch (error) {
     return false;
   }
+}
+
+export async function checkCredits(credits: number, userId: string) {
+  const current = await prisma.credits.findUnique({ where: { userId } });
+  if (!current) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Something went wrong",
+    });
+  }
+
+  if (current.credits - credits < 0) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "You are short of credits. Please buy some credits to continue.",
+    });
+  }
+}
+
+export async function consumeCredits(credits: number, userId: string) {
+  await prisma.credits.update({
+    where: { userId },
+    data: { credits: { decrement: credits } },
+  });
 }
