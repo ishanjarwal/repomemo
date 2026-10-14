@@ -128,6 +128,7 @@ export const ProjectView = ({ id }: ProjectViewProps) => {
         ownerAvatarUrl={project.owner.avatar_url}
         ownerLogin={project.owner.username}
         repoName={project.repo}
+        suggestedQueries={project.suggestedQueries}
         branch="main"
       />
 

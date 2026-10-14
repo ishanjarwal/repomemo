@@ -234,6 +234,7 @@ export class ProjectService {
         name: true,
         github_id: true,
         indexedCommitSha: true,
+        suggestedQueries: true,
         createdAt: true,
         updatedAt: true,
         job: true,

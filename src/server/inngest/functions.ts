@@ -8,6 +8,7 @@ import { chunkArray } from "../utils";
 import { EVENTS, inngest } from "./client";
 import { transporter } from "@/lib/nodemailer";
 import { cron } from "inngest";
+import { generateSuggestedQueries } from "../ai/generate-suggested-queries";
 
 export const createProjectJob = inngest.createFunction(
   { id: "create-project", triggers: [EVENTS.PROJECT_CREATED] },
@@ -83,6 +84,18 @@ export const createProjectJob = inngest.createFunction(
     `,
         ),
       );
+    });
+
+    await step.run("generate-suggested-queries", async () => {
+      const suggestedQueries = await generateSuggestedQueries(
+        event.data.repoUrl,
+        event.data.sha,
+      );
+
+      await prisma.project.update({
+        where: { id: event.data.projectId },
+        data: { suggestedQueries },
+      });
     });
 
     await step.run("update-job-status-ready", async () => {

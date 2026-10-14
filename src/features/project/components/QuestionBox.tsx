@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  ArrowUp,
-  Coins,
-  Command,
-  FileCode2,
-  GitBranch,
-  Loader2,
-  Sparkles,
-} from "lucide-react";
+import { ArrowUp, Command, GitBranch, Loader2, Sparkles } from "lucide-react";
 import * as React from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,13 +13,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import { FaGithub } from "react-icons/fa";
-import { QuestionSchema, QuestionValues } from "../schema";
-import { toast } from "sonner";
 import { RiCoinFill } from "react-icons/ri";
+import { toast } from "sonner";
+import { QuestionSchema, QuestionValues } from "../schema";
 
 interface QuestionBoxProps {
   projectId: string;
   repoName: string;
+  suggestedQueries: string[];
   ownerLogin: string;
   ownerAvatarUrl: string;
   branch?: string;
@@ -39,6 +32,7 @@ export function QuestionBox({
   repoName,
   ownerAvatarUrl,
   ownerLogin,
+  suggestedQueries,
   branch = "main",
   disabled = false,
 }: QuestionBoxProps) {
@@ -218,7 +212,7 @@ export function QuestionBox({
 
         {/* Suggested prompts */}
         <div className="mt-3 flex flex-wrap gap-2 px-1">
-          {examplePrompts.map((prompt) => (
+          {suggestedQueries.map((prompt) => (
             <button
               key={prompt}
               type="button"

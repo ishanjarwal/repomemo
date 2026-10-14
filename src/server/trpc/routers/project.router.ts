@@ -6,6 +6,7 @@ import {
 import z from "zod";
 import { projectService } from "../services/project.service";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { generateSuggestedQueries } from "@/server/ai/generate-suggested-queries";
 
 export const projectRouter = createTRPCRouter({
   preCreate: protectedProcedure
