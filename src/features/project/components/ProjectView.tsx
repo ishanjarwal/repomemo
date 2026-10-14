@@ -5,6 +5,8 @@ import { PreviousAnswersSection } from "@/features/project/components/PreviousAn
 import { ProjectHeader } from "@/features/project/components/ProjectHeader";
 import { ProjectSkeleton } from "@/features/project/components/ProjectSkeleton";
 import { QuestionBox } from "@/features/project/components/QuestionBox";
+import { ReindexBanner } from "@/features/project/components/ReindexBanner";
+import { ReindexLoader } from "@/features/project/components/ReindexLoader";
 import { api } from "@/lib/trpc/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -51,11 +53,14 @@ export const ProjectView = ({ id }: ProjectViewProps) => {
     },
   );
 
+  const currentStatus = ingestionQuery.data?.status ?? jobStatus;
+  const isReindexing = currentStatus === "reindexing" || jobStatus === "reindexing";
+
   /*
-   * Decide whether CreateLoader should be displayed.
+   * Decide whether CreateLoader or ReindexLoader should be displayed.
    *
    * We only show it when the initial project query says
-   * that ingestion is required.
+   * that ingestion or reindexing is required.
    */
   useEffect(() => {
     if (!projectQuery.isSuccess) return;
@@ -69,9 +74,9 @@ export const ProjectView = ({ id }: ProjectViewProps) => {
   }, [projectQuery.isSuccess, jobStatus]);
 
   /*
-   * When ingestion becomes ready:
+   * When ingestion or reindexing becomes ready:
    *
-   * 1. Keep CreateLoader visible for 2 seconds.
+   * 1. Keep loader visible for 2 seconds.
    * 2. Remove it.
    * 3. Refetch the project.
    *
@@ -89,32 +94,49 @@ export const ProjectView = ({ id }: ProjectViewProps) => {
     return () => clearTimeout(timeout);
   }, [ingestionQuery.data?.status]);
 
-  // Handle ingestion failure.
+  // Handle ingestion / reindexing failure.
   useEffect(() => {
     if (ingestionQuery.data?.status !== "failed") return;
 
-    toast.error("Something went wrong");
-    router.push("/dashboard");
-  }, [ingestionQuery.data?.status, router]);
+    if (isReindexing) {
+      toast.error("Reindexing failed");
+      setShowLoader(false);
+      void projectQuery.refetch();
+    } else {
+      toast.error("Something went wrong");
+      router.push("/dashboard");
+    }
+  }, [ingestionQuery.data?.status, isReindexing, router]);
 
   // Initial project query.
   if (projectQuery.isPending) {
     return <ProjectSkeleton />;
   }
 
-  // Ingestion is required and is running.
+  // Loader is required and is running.
   if (showLoader) {
+    if (isReindexing) {
+      return (
+        <div className="flex items-center justify-center py-16">
+          <ReindexLoader
+            progress={ingestionQuery.data?.progress ?? 0}
+            status={currentStatus}
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="flex items-center justify-center py-16">
         <CreateLoader
           progress={ingestionQuery.data?.progress ?? 0}
-          status={ingestionQuery.data?.status ?? "queued"}
+          status={currentStatus ?? "queued"}
         />
       </div>
     );
   }
 
-  // After CreateLoader disappears, project is being refetched.
+  // After loader disappears, project is being refetched.
   if (projectQuery.isFetching || !project) {
     return <ProjectSkeleton />;
   }
@@ -122,6 +144,17 @@ export const ProjectView = ({ id }: ProjectViewProps) => {
   return (
     <div className="mx-auto max-w-3xl space-y-8 pt-12">
       <ProjectHeader project={project} />
+
+      {project.reindexRequest && currentStatus === "ready" && (
+        <ReindexBanner
+          projectId={id}
+          changedFilesCount={project.changedFilesCount}
+          estimatedCredits={project.estimatedCredits}
+          onReindexStarted={() => {
+            setShowLoader(true);
+          }}
+        />
+      )}
 
       <QuestionBox
         projectId={id}

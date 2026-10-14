@@ -4,12 +4,17 @@ import { Document } from "@langchain/core/documents";
 import { generateRepoFilesSummaryEmbeddings } from "../ai/generate-repo-file-summary-embeddings";
 import { generateRepoContentSummary } from "../ai/generate-repo-files-summary";
 import { repoContentLoader } from "../github/repo-content-loader";
-import { chunkArray } from "../utils";
+import { chunkArray, parseGitHubUrl } from "../utils";
 import { EVENTS, inngest } from "./client";
 import { transporter } from "@/lib/nodemailer";
 import { cron } from "inngest";
 import { generateSuggestedQueries } from "../ai/generate-suggested-queries";
 import { decryptSafe } from "../crypto";
+import { getOctokit } from "../github/client";
+import {
+  fetchFileContentAtSha,
+  getChangedFilesBetweenCommits,
+} from "../github/compare";
 
 export const createProjectJob = inngest.createFunction(
   {
@@ -191,5 +196,215 @@ export const cleanupOrphanedProjectCreateSessions = inngest.createFunction(
     return {
       message: `Successfully deleted ${result.count} orphaned projectCreateSession documents.`,
     };
+  },
+);
+
+export const reindexProjectJob = inngest.createFunction(
+  {
+    id: "reindex-project",
+    triggers: [EVENTS.PROJECT_REINDEX],
+    onFailure: async ({ event }) => {
+      const jobId = event.data.event.data.jobId;
+      if (jobId) {
+        await prisma.projectJob.update({
+          where: { id: jobId },
+          data: {
+            status: "failed",
+          },
+        });
+      }
+    },
+  },
+  async ({ event, step }) => {
+    await step.run("update-job-status-reindexing", async () => {
+      await prisma.projectJob.update({
+        where: { id: event.data.jobId },
+        data: {
+          status: "reindexing",
+          progress: 10,
+        },
+      });
+    });
+
+    const changedFiles = await step.run("fetch-changed-files", async () => {
+      const project = await prisma.project.findUnique({
+        where: { id: event.data.projectId },
+        select: { personalAccessToken: true },
+      });
+      const token = decryptSafe(project?.personalAccessToken) || undefined;
+      const octokit = getOctokit(token);
+
+      const parsed = parseGitHubUrl(event.data.repoUrl);
+      if (!parsed) throw new Error("Invalid repository URL");
+      const { owner, repo } = parsed;
+
+      return await getChangedFilesBetweenCommits(
+        octokit,
+        owner,
+        repo,
+        event.data.baseSha,
+        event.data.targetSha,
+      );
+    });
+
+    await step.run("clean-stale-embeddings", async () => {
+      for (const file of changedFiles) {
+        if (file.status === "removed") {
+          await prisma.repoFile.deleteMany({
+            where: {
+              projectId: event.data.projectId,
+              source: file.filename,
+            },
+          });
+        } else if (file.status === "renamed") {
+          if (file.previous_filename) {
+            await prisma.repoFile.deleteMany({
+              where: {
+                projectId: event.data.projectId,
+                source: file.previous_filename,
+              },
+            });
+          }
+          await prisma.repoFile.deleteMany({
+            where: {
+              projectId: event.data.projectId,
+              source: file.filename,
+            },
+          });
+        } else {
+          // "modified" or "added"
+          await prisma.repoFile.deleteMany({
+            where: {
+              projectId: event.data.projectId,
+              source: file.filename,
+            },
+          });
+        }
+      }
+    });
+
+    const chunkedDocs = await step.run("load-changed-file-contents", async () => {
+      const project = await prisma.project.findUnique({
+        where: { id: event.data.projectId },
+        select: { personalAccessToken: true },
+      });
+      const token = decryptSafe(project?.personalAccessToken) || undefined;
+      const octokit = getOctokit(token);
+
+      const parsed = parseGitHubUrl(event.data.repoUrl);
+      if (!parsed) throw new Error("Invalid repository URL");
+      const { owner, repo } = parsed;
+
+      const filesToFetch = changedFiles.filter((f) => f.status !== "removed");
+      const docs: Document[] = [];
+
+      for (const file of filesToFetch) {
+        const content = await fetchFileContentAtSha(
+          octokit,
+          owner,
+          repo,
+          file.filename,
+          event.data.targetSha,
+        );
+        if (content !== null && content.length > 0) {
+          docs.push(
+            new Document({
+              pageContent: content,
+              metadata: { source: file.filename },
+            }),
+          );
+        }
+      }
+
+      return chunkArray<Document>(docs, 8);
+    });
+
+    if (chunkedDocs.length > 0) {
+      await step.run("update-job-progress-summaries", async () => {
+        await prisma.projectJob.update({
+          where: { id: event.data.jobId },
+          data: { progress: 40 },
+        });
+      });
+
+      const summaries = await step.run("generate-file-summaries", async () => {
+        return (
+          await Promise.all(
+            chunkedDocs.map(async (doc) => {
+              return await generateRepoContentSummary(doc);
+            }),
+          )
+        ).flat();
+      });
+
+      await step.run("update-job-progress-embeddings", async () => {
+        await prisma.projectJob.update({
+          where: { id: event.data.jobId },
+          data: { progress: 70 },
+        });
+      });
+
+      const embeddings = await step.run(
+        "generate-file-summary-embeddings",
+        async () => {
+          return await generateRepoFilesSummaryEmbeddings(summaries);
+        },
+      );
+
+      await step.run("save-embeddings-to-db", async () => {
+        if (embeddings.length > 0) {
+          await prisma.$transaction(
+            embeddings.map(
+              (item) =>
+                prisma.$executeRaw`
+          INSERT INTO "repo_files" ("id", "source", "summary", "embedding", "projectId")
+          VALUES (
+            ${crypto.randomUUID()},
+            ${item.source},
+            ${item.summary},
+            ${`[${item.embedding.join(",")}]`}::vector,
+            ${event.data.projectId}
+          )
+        `,
+            ),
+          );
+        }
+      });
+    }
+
+    await step.run("generate-suggested-queries", async () => {
+      const project = await prisma.project.findUnique({
+        where: { id: event.data.projectId },
+        select: { personalAccessToken: true },
+      });
+      const token = decryptSafe(project?.personalAccessToken) || undefined;
+      const suggestedQueries = await generateSuggestedQueries(
+        event.data.repoUrl,
+        event.data.targetSha,
+        token,
+      );
+
+      await prisma.project.update({
+        where: { id: event.data.projectId },
+        data: { suggestedQueries },
+      });
+    });
+
+    await step.run("update-job-status-ready", async () => {
+      await prisma.project.update({
+        where: { id: event.data.projectId },
+        data: {
+          indexedCommitSha: event.data.targetSha,
+        },
+      });
+
+      await prisma.projectJob.update({
+        where: { id: event.data.jobId },
+        data: {
+          status: "ready",
+          progress: 100,
+        },
+      });
+    });
   },
 );

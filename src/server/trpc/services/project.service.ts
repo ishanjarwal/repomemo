@@ -1,4 +1,4 @@
-import {
+import type {
   NewProjectFormOutput,
   ProjectConfirmationOutput,
 } from "@/features/project/schema";
@@ -11,6 +11,10 @@ import {
   octokit as defaultOctokit,
 } from "@/server/github/client";
 import { decryptSafe, encrypt } from "@/server/crypto";
+import {
+  getChangedFilesBetweenCommits,
+  getLatestRepoCommit,
+} from "@/server/github/compare";
 import { EVENTS, inngest } from "@/server/inngest/client";
 import {
   checkCredits,
@@ -20,12 +24,12 @@ import {
   prepareQueryContext,
   verifyPrivateRepo,
 } from "@/server/utils";
-import { components } from "@octokit/openapi-types";
-import { Endpoints } from "@octokit/types";
+import type { components } from "@octokit/openapi-types";
+import type { Endpoints } from "@octokit/types";
 import { TRPCError } from "@trpc/server";
 import { remark } from "remark";
 import stripMarkdown from "strip-markdown";
-import { ProtectedProcedureContext } from "../types";
+import type { ProtectedProcedureContext } from "../types";
 
 const ANSWERS_PER_PAGE = 10;
 
@@ -271,17 +275,72 @@ export class ProjectService {
     }
 
     const token = decryptSafe(project.personalAccessToken);
-    const octokit = getOctokit(token);
+    const octokit = token ? getOctokit(token) : (ctx.octokit ?? getOctokit());
 
-    const {
-      data,
-    }: { data: Endpoints["GET /repositories"]["response"]["data"][number] } =
-      await octokit.request("GET /repositories/{id}?ref={ref}", {
-        id: project.github_id,
-        ref: project.indexedCommitSha,
-      });
+    let repoName = "";
+    let isPrivate = false;
+    let htmlUrl = "";
+    let ownerUsername = "";
+    let ownerAvatarUrl = "";
+    let latestCommitSha: string | null = null;
+    let reindexRequest = false;
+    let changedFilesCount = 0;
+    let estimatedCredits = 0;
 
-    const { name, private: isPrivate, html_url, owner } = data;
+    try {
+      const repoDetails = await getLatestRepoCommit(octokit, project.github_id);
+      repoName = repoDetails.repo;
+      isPrivate = repoDetails.isPrivate;
+      htmlUrl = repoDetails.htmlUrl;
+      ownerUsername = repoDetails.owner;
+      ownerAvatarUrl = repoDetails.avatarUrl;
+      latestCommitSha = repoDetails.latestCommitSha;
+
+      if (
+        project.job.status !== "reindexing" &&
+        project.indexedCommitSha &&
+        latestCommitSha &&
+        project.indexedCommitSha !== latestCommitSha
+      ) {
+        reindexRequest = true;
+        try {
+          const changedFiles = await getChangedFilesBetweenCommits(
+            octokit,
+            ownerUsername,
+            repoName,
+            project.indexedCommitSha,
+            latestCommitSha,
+          );
+          changedFilesCount = changedFiles.length;
+          estimatedCredits = changedFiles.length; // 1 file = 1 credit
+        } catch {
+          // If commit comparison API errors, still indicate reindex is needed but with 0 count
+          changedFilesCount = 0;
+          estimatedCredits = 0;
+        }
+      }
+    } catch {
+      // Fallback if getLatestRepoCommit fails
+      try {
+        const {
+          data,
+        }: { data: Endpoints["GET /repositories"]["response"]["data"][number] } =
+          await octokit.request("GET /repositories/{id}?ref={ref}", {
+            id: project.github_id,
+            ref: project.indexedCommitSha,
+          });
+        repoName = data.name as string;
+        isPrivate = data.private as boolean;
+        htmlUrl = data.html_url as string;
+        ownerUsername = data.owner.login as string;
+        ownerAvatarUrl = data.owner.avatar_url as string;
+      } catch {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "GitHub repository not found or you don't have access to it.",
+        });
+      }
+    }
 
     return {
       id: project.id,
@@ -293,13 +352,129 @@ export class ProjectService {
       updatedAt: project.updatedAt,
       job: undefined,
       jobStatus: project.job.status,
-      repo: name as string,
-      isPrivate: isPrivate as boolean,
-      url: html_url as string,
+      repo: repoName,
+      isPrivate,
+      url: htmlUrl,
       owner: {
-        username: owner.login as string,
-        avatar_url: owner.avatar_url as string,
+        username: ownerUsername,
+        avatar_url: ownerAvatarUrl,
       },
+      reindexRequest,
+      changedFilesCount,
+      estimatedCredits,
+      latestCommitSha,
+    };
+  }
+
+  async reindexProject(
+    ctx: ProtectedProcedureContext,
+    input: { projectId: string },
+  ) {
+    const project = await ctx.prisma.project.findUnique({
+      where: {
+        id: input.projectId,
+        userId: ctx.user.id,
+      },
+      include: {
+        job: true,
+      },
+    });
+
+    if (!project || !project.job) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Project not found",
+      });
+    }
+
+    // Prevent duplicate or conflicting jobs
+    if (
+      project.job.status === "reindexing" ||
+      (project.job.status !== "ready" && project.job.status !== "failed")
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "A job is already in progress for this project.",
+      });
+    }
+
+    const token = decryptSafe(project.personalAccessToken);
+    const octokit = token ? getOctokit(token) : (ctx.octokit ?? getOctokit());
+
+    const repoDetails = await getLatestRepoCommit(octokit, project.github_id);
+    const { owner, repo, latestCommitSha, htmlUrl } = repoDetails;
+
+    if (!latestCommitSha) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Unable to retrieve the latest commit from the GitHub repository.",
+      });
+    }
+
+    if (latestCommitSha === project.indexedCommitSha) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Repository is already up to date with the latest commit.",
+      });
+    }
+
+    if (repoDetails.isPrivate) {
+      if (!token) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "This repository is private. Please provide a Personal Access Token.",
+        });
+      }
+
+      const check = await verifyPrivateRepo(token, owner, repo);
+      if (!check) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Provided Personal Access Token is invalid or does not have access to this repository.",
+        });
+      }
+    }
+
+    const changedFiles = await getChangedFilesBetweenCommits(
+      octokit,
+      owner,
+      repo,
+      project.indexedCommitSha,
+      latestCommitSha,
+    );
+
+    const credits = changedFiles.length; // 1 file = 1 credit
+
+    // Verify credits and consume
+    await checkCredits(credits, ctx.user.id, ctx.prisma);
+    await consumeCredits(credits, ctx.user.id, ctx.prisma);
+
+    // Update job status to reindexing
+    await ctx.prisma.projectJob.update({
+      where: { id: project.job.id },
+      data: {
+        status: "reindexing",
+        progress: 0,
+      },
+    });
+
+    // Trigger dedicated Inngest event
+    await inngest.send(
+      EVENTS.PROJECT_REINDEX.create({
+        jobId: project.job.id,
+        projectId: project.id,
+        repoUrl: htmlUrl || `https://github.com/${owner}/${repo}`,
+        baseSha: project.indexedCommitSha,
+        targetSha: latestCommitSha,
+      }),
+    );
+
+    return {
+      success: true,
+      changedFilesCount: changedFiles.length,
+      creditsConsumed: credits,
     };
   }
 

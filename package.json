@@ -19,6 +19,7 @@
     "preview": "next build && next start",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "test": "node --import ./src/server/__tests__/register.mjs --test src/server/__tests__/*.test.ts",
     "auth:generate": "npx auth generate --config src/lib/auth.ts"
   },
   "dependencies": {

@@ -1,5 +1,5 @@
 import { Octokit } from "octokit";
-import { PROJECT_SIZE, ProjectSize } from "./constants";
+import { PROJECT_SIZE, type ProjectSize } from "./constants";
 import { prisma } from "@/lib/prisma";
 import { TRPCError } from "@trpc/server";
 
@@ -79,8 +79,8 @@ export async function verifyPrivateRepo(
   }
 }
 
-export async function checkCredits(credits: number, userId: string) {
-  const current = await prisma.credits.findUnique({ where: { userId } });
+export async function checkCredits(credits: number, userId: string, db: any = prisma) {
+  const current = await db.credits.findUnique({ where: { userId } });
   if (!current) {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -96,8 +96,8 @@ export async function checkCredits(credits: number, userId: string) {
   }
 }
 
-export async function consumeCredits(credits: number, userId: string) {
-  await prisma.credits.update({
+export async function consumeCredits(credits: number, userId: string, db: any = prisma) {
+  await db.credits.update({
     where: { userId },
     data: { credits: { decrement: credits } },
   });

@@ -21,6 +21,12 @@ export const projectRouter = createTRPCRouter({
       return projectService.createProject(ctx, input);
     }),
 
+  reindex: protectedProcedure
+    .input(z.object({ projectId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      return projectService.reindexProject(ctx, input);
+    }),
+
   getProjects: protectedProcedure.query(async ({ ctx }) => {
     return projectService.getProjects(ctx);
   }),

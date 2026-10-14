@@ -184,6 +184,7 @@ enum ProjectJobStatusEnum {
   building_vector_index
   ready
   failed
+  reindexing
 }
 
 model ProjectCreateSession {

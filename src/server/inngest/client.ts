@@ -17,6 +17,15 @@ export const EVENTS = {
       html: string;
     }>(),
   }),
+  PROJECT_REINDEX: eventType("app/project.reindex", {
+    schema: staticSchema<{
+      jobId: string;
+      projectId: string;
+      repoUrl: string;
+      baseSha: string;
+      targetSha: string;
+    }>(),
+  }),
 };
 
 export const inngest = new Inngest({ id: "repomemo", isDev: true });
