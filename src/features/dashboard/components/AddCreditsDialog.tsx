@@ -18,6 +18,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/trpc/react";
+import { useTheme } from "next-themes";
 
 const BILLING_PACKS = [
   { slug: "100", title: "100 credits", price: 1, popular: false },
@@ -39,6 +40,7 @@ export const AddCreditsDialog = ({
   open,
   onOpenChange,
 }: AddCreditsDialogProps) => {
+  const { resolvedTheme } = useTheme();
   const router = useRouter();
   const [selectedPack, setSelectedPack] = useState<BillingPackSlug>("1000");
 
@@ -59,7 +61,10 @@ export const AddCreditsDialog = ({
       },
       {
         onSuccess(url) {
-          router.push(url);
+          const theme = resolvedTheme === "light" ? "light" : "dark";
+          const newUrl = new URL(url);
+          newUrl.searchParams.set("theme", theme);
+          router.push(newUrl.toString());
         },
         onError(error) {
           toast.error(error.message || "Failed to initialize checkout");

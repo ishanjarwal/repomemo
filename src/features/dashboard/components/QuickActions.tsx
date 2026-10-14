@@ -85,7 +85,7 @@ export const QuickActions = ({ onAddCredits }: QuickActionsProps) => {
           >
             <span className="flex items-center gap-2">
               <ExternalLink className="text-primary size-3.5" />
-              <span>Manage Subscription</span>
+              <span>Manage Billing</span>
             </span>
             <span className="text-muted-foreground text-[10px]">Polar</span>
           </Button>

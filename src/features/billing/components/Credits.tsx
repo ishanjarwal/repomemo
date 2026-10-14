@@ -39,6 +39,8 @@ const Credits = ({ initialSession }: Props) => {
   const router = useRouter();
   auth.hydrateSession(initialSession);
 
+  const { resolvedTheme } = useTheme();
+
   const { data, isPending, isRefetching } = auth.useSession();
   const session = isPending && !isRefetching ? initialSession : data;
 
@@ -63,7 +65,10 @@ const Credits = ({ initialSession }: Props) => {
           //   theme: resolvedTheme === "light" ? "light" : "dark",
           // });
 
-          router.push(url);
+          const theme = resolvedTheme === "light" ? "light" : "dark";
+          const newUrl = new URL(url);
+          newUrl.searchParams.set("theme", theme);
+          router.push(newUrl.toString());
         },
         onError(error) {
           toast.error(error.message || "Something went wrong");
