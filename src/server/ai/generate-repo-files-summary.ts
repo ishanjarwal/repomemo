@@ -18,7 +18,7 @@ type FileSummaryValues = z.infer<typeof FileSummarySchema>;
 export async function generateRepoContentSummary(docs: Document[]) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: env.GEMINI_API_KEY,
-    model: "gemini-3.5-flash-lite",
+    model: env.GEMINI_TEXT_MODEL,
     temperature: 0.2, // Lower temperature is ideal for rigid structured data
   });
 

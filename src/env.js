@@ -15,6 +15,7 @@ export const env = createEnv({
     GITHUB_TOKEN: z.string(),
 
     GEMINI_API_KEY: z.string(),
+    GEMINI_TEXT_MODEL: z.string(),
 
     GOOGLE_AUTH_CLIENT_SECRET: z.string(),
 
@@ -71,6 +72,7 @@ export const env = createEnv({
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
 
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    GEMINI_TEXT_MODEL: process.env.GEMINI_TEXT_MODEL,
 
     NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID:
       process.env.NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID,
