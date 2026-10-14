@@ -5,9 +5,11 @@ import { polar } from "@/lib/polar";
 import { api } from "@/lib/trpc/react";
 import { CreditCard, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 
 const CustomerPortalButton = () => {
   const router = useRouter();
+  const { resolvedTheme } = useTheme();
   const m = api.billing.getCustomerPortal.useMutation();
 
   return (
@@ -15,7 +17,10 @@ const CustomerPortalButton = () => {
       onClick={() => {
         m.mutate(undefined, {
           onSuccess: (url) => {
-            router.push(url);
+            const theme = resolvedTheme === "light" ? "light" : "dark";
+            const newUrl = new URL(url);
+            newUrl.searchParams.set("theme", theme);
+            router.push(newUrl.toString());
           },
         });
       }}

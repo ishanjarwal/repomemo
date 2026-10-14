@@ -19,19 +19,24 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { api } from "@/lib/trpc/react";
+import { useTheme } from "next-themes";
 
 interface QuickActionsProps {
   onAddCredits: () => void;
 }
 
 export const QuickActions = ({ onAddCredits }: QuickActionsProps) => {
+  const { resolvedTheme } = useTheme();
   const getCustomerPortalMutation = api.billing.getCustomerPortal.useMutation();
 
   const handleOpenPortal = () => {
     getCustomerPortalMutation.mutate(undefined, {
       onSuccess(url) {
         if (url) {
-          window.open(url, "_blank");
+          const theme = resolvedTheme === "light" ? "light" : "dark";
+          const newUrl = new URL(url);
+          newUrl.searchParams.set("theme", theme);
+          window.open(newUrl.toString(), "_blank");
         }
       },
       onError(error) {
