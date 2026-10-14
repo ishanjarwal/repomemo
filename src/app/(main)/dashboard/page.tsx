@@ -1,3 +1,4 @@
+import { DashboardView } from "@/features/dashboard/components/DashboardView";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -7,11 +8,7 @@ const DashboardPage = async () => {
   if (!session) {
     return redirect("/login");
   }
-  return (
-    <div>
-      <h1>DashboardPage</h1>
-    </div>
-  );
+  return <DashboardView initialUser={session.user} />;
 };
 
 export default DashboardPage;
