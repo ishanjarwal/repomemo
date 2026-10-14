@@ -38,11 +38,11 @@ export const BILLING_PACK_SLUG = BILLING_PACKS.map((el) => el.slug);
 export const PROJECT_SIZE = {
   small: {
     maxFiles: 100,
-    credits: 50,
+    credits: 20,
   },
   medium: {
     maxFiles: 1_000,
-    credits: 100,
+    credits: 50,
   },
 } as const;
 export type ProjectSize = "small" | "medium" | "large";
