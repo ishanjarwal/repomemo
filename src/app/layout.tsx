@@ -2,13 +2,12 @@ import "@/styles/globals.css";
 
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { auth } from "@/lib/auth";
 import { TRPCReactProvider } from "@/lib/trpc/react";
 import { cn } from "@/lib/utils";
 import { type Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { Fira_Code, Inter, Plus_Jakarta_Sans } from "next/font/google";
-import GoogleOneTap from "@/features/auth/components/GoogleOneTap";
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
 export const metadata: Metadata = {
@@ -50,7 +49,6 @@ export default async function RootLayout({
       )}
     >
       <body>
-        <GoogleOneTap initialSession={session} />
         <ThemeProvider
           attribute="class"
           enableSystem={false}

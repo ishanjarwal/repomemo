@@ -95,9 +95,4 @@ export const auth = betterAuth({
       },
     },
   },
-  plugins: [
-    oneTap({
-      clientId: env.NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID,
-    }),
-  ],
 });
