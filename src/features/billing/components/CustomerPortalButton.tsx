@@ -26,17 +26,17 @@ const CustomerPortalButton = () => {
       }}
       disabled={m.isPending}
       variant={"ghost"}
-      className="h-9 w-full justify-start"
+      className="h-9 w-full justify-start group-data-[state=collapsed]:justify-center"
     >
       {m.isPending ? (
         <>
           <Loader2 className="animate-spin" />
-          <span>Loading</span>
+          <span className="group-data-[state=collapsed]:hidden">Loading</span>
         </>
       ) : (
         <>
           <CreditCard />
-          <span>Billing</span>
+          <span className="group-data-[state=collapsed]:hidden">Billing</span>
         </>
       )}
     </Button>
