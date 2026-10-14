@@ -130,6 +130,7 @@ export const ProjectView = ({ id }: ProjectViewProps) => {
         repoName={project.repo}
         suggestedQueries={project.suggestedQueries}
         branch="main"
+        isPrivate={project.isPrivate}
       />
 
       <PreviousAnswersSection projectId={id} />

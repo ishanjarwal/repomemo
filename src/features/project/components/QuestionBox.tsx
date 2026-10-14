@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowUp, Command, GitBranch, Loader2, Sparkles } from "lucide-react";
+import { ArrowUp, Command, GitBranch, Loader2, Lock, Sparkles } from "lucide-react";
 import * as React from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { env } from "@/env";
@@ -25,6 +26,7 @@ interface QuestionBoxProps {
   ownerAvatarUrl: string;
   branch?: string;
   disabled?: boolean;
+  isPrivate?: boolean;
 }
 
 export function QuestionBox({
@@ -35,6 +37,7 @@ export function QuestionBox({
   suggestedQueries,
   branch = "main",
   disabled = false,
+  isPrivate = false,
 }: QuestionBoxProps) {
   const updateSearchParams = useUpdateSearchParams();
 
@@ -119,6 +122,17 @@ export function QuestionBox({
                     <GitBranch className="size-3" />
                     {branch}
                   </span>
+
+                  {isPrivate ? (
+                    <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0 h-4.5">
+                      <Lock className="size-2.5" />
+                      Private
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4.5">
+                      Public
+                    </Badge>
+                  )}
                 </div>
               </div>
 

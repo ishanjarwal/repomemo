@@ -9,9 +9,24 @@ import { EVENTS, inngest } from "./client";
 import { transporter } from "@/lib/nodemailer";
 import { cron } from "inngest";
 import { generateSuggestedQueries } from "../ai/generate-suggested-queries";
+import { decryptSafe } from "../crypto";
 
 export const createProjectJob = inngest.createFunction(
-  { id: "create-project", triggers: [EVENTS.PROJECT_CREATED] },
+  {
+    id: "create-project",
+    triggers: [EVENTS.PROJECT_CREATED],
+    onFailure: async ({ event }) => {
+      const jobId = event.data.event.data.jobId;
+      if (jobId) {
+        await prisma.projectJob.update({
+          where: { id: jobId },
+          data: {
+            status: "failed",
+          },
+        });
+      }
+    },
+  },
   async ({ event, step, logger }) => {
     await step.run("update-job-status-fetching-repo", async () => {
       await prisma.projectJob.update({
@@ -24,7 +39,16 @@ export const createProjectJob = inngest.createFunction(
     });
 
     const chunkedDocs = await step.run("load-repo-contents", async () => {
-      const docs = await repoContentLoader(event.data.repoUrl, event.data.sha);
+      const project = await prisma.project.findUnique({
+        where: { id: event.data.projectId },
+        select: { personalAccessToken: true },
+      });
+      const token = decryptSafe(project?.personalAccessToken) || undefined;
+      const docs = await repoContentLoader(
+        event.data.repoUrl,
+        event.data.sha,
+        token,
+      );
       const chunked = chunkArray<Document>(docs, 8);
       return chunked;
     });
@@ -87,9 +111,15 @@ export const createProjectJob = inngest.createFunction(
     });
 
     await step.run("generate-suggested-queries", async () => {
+      const project = await prisma.project.findUnique({
+        where: { id: event.data.projectId },
+        select: { personalAccessToken: true },
+      });
+      const token = decryptSafe(project?.personalAccessToken) || undefined;
       const suggestedQueries = await generateSuggestedQueries(
         event.data.repoUrl,
         event.data.sha,
+        token,
       );
 
       await prisma.project.update({

@@ -2,7 +2,7 @@ import { env } from "@/env";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { z } from "zod";
-import { octokit } from "../github/client";
+import { getOctokit } from "../github/client";
 import { parseGitHubUrl } from "../utils";
 
 const SuggestedQueriesSchema = z.array(
@@ -18,21 +18,28 @@ type SuggestedQueriesValues = z.infer<typeof SuggestedQueriesSchema>;
 export async function generateSuggestedQueries(
   repo_url: string,
   tree_sha: string,
+  token?: string,
 ) {
   const parsed = parseGitHubUrl(repo_url);
   if (!parsed) return [];
 
   const { owner, repo } = parsed;
-  const { data: repoData } = await octokit.rest.repos.get({
-    owner,
-    repo,
-    tree_sha,
-  });
+  const client = getOctokit(token);
+
+  let description = "";
+  try {
+    const { data: repoData } = await client.rest.repos.get({
+      owner,
+      repo,
+      tree_sha,
+    });
+    description = repoData.description || "";
+  } catch (error) {}
 
   //   fetch the readme
   let README = null;
   try {
-    const { data } = await octokit.rest.repos.getReadme({
+    const { data } = await client.rest.repos.getReadme({
       owner,
       repo,
       tree_sha,
@@ -42,19 +49,22 @@ export async function generateSuggestedQueries(
   } catch (error) {}
 
   //   fetch the folder tree :
-  const { data: treeData } = await octokit.rest.git.getTree({
-    owner,
-    repo,
-    tree_sha,
-    recursive: "true",
-  });
+  let folderStructure: { path?: string; type: string }[] = [];
+  try {
+    const { data: treeData } = await client.rest.git.getTree({
+      owner,
+      repo,
+      tree_sha,
+      recursive: "true",
+    });
 
-  const folderStructure = treeData.tree
-    .filter((item) => item.type === "tree" || item.type === "blob")
-    .map((item) => ({
-      path: item.path,
-      type: item.type === "tree" ? "directory" : "file",
-    }));
+    folderStructure = treeData.tree
+      .filter((item) => item.type === "tree" || item.type === "blob")
+      .map((item) => ({
+        path: item.path,
+        type: item.type === "tree" ? "directory" : "file",
+      }));
+  } catch (error) {}
 
   const model = new ChatGoogleGenerativeAI({
     apiKey: env.GEMINI_API_KEY,
@@ -94,7 +104,7 @@ export async function generateSuggestedQueries(
 
   const result: SuggestedQueriesValues = await chain.invoke({
     REPO_URL: `https://github.com/${owner}/${repo}`,
-    DESCRIPTION: repoData.description,
+    DESCRIPTION: description,
     README,
     FOLDER_STRUCTURE: folderStructure,
   });

@@ -68,6 +68,19 @@ const CreateProjectConfirmation = ({
   const createProject = api.project.createProject.useMutation();
 
   const handleSubmit = (values: ProjectConfirmationOutput) => {
+    if (
+      repository.isPrivate &&
+      (!values.personal_access_token ||
+        values.personal_access_token.trim().length === 0)
+    ) {
+      form.setError("personal_access_token", {
+        type: "manual",
+        message:
+          "GitHub Personal Access Token is required for private repositories.",
+      });
+      return;
+    }
+
     createProject.mutate(values, {
       onSuccess: (id) => {
         toast.success("Project queued");

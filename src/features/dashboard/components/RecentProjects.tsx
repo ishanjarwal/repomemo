@@ -9,6 +9,7 @@ import {
   FolderGit2,
   LayoutGrid,
   List,
+  Lock,
   Plus,
   Search,
   X,
@@ -208,9 +209,27 @@ export const RecentProjects = () => {
                             {project.name}
                           </h3>
                         </div>
-                        <Badge variant="outline" className="text-[10px]">
-                          Indexed
-                        </Badge>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {project.isPrivate ? (
+                            <Badge
+                              variant="secondary"
+                              className="gap-1 text-[10px] px-1.5 py-0 h-5"
+                            >
+                              <Lock className="size-2.5" />
+                              Private
+                            </Badge>
+                          ) : (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] px-1.5 py-0 h-5"
+                            >
+                              Public
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">
+                            Indexed
+                          </Badge>
+                        </div>
                       </div>
 
                       <div className="text-muted-foreground mt-4 flex items-center gap-1.5 text-xs">
@@ -263,6 +282,22 @@ export const RecentProjects = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      {project.isPrivate ? (
+                        <Badge
+                          variant="secondary"
+                          className="hidden gap-1 text-[10px] sm:inline-flex"
+                        >
+                          <Lock className="size-2.5" />
+                          Private
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="hidden text-[10px] sm:inline-flex"
+                        >
+                          Public
+                        </Badge>
+                      )}
                       <Badge
                         variant="outline"
                         className="hidden text-[10px] sm:inline-flex"

@@ -3,7 +3,7 @@ import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/trpc/react";
 import { cn } from "cn";
-import { Folder } from "lucide-react";
+import { Folder, Lock } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 
@@ -39,13 +39,18 @@ const ProjectListSidebar = () => {
               <Link
                 className={cn(
                   pathname.startsWith("/project/") &&
-                    id === project.id &&
+                     id === project.id &&
                     "bg-primary hover:bg-primary! text-white hover:text-white!",
                 )}
                 href={`/project/${project.id}`}
               >
                 <Folder />
-                <span>{project.name}</span>
+                <span className="truncate flex-1">{project.name}</span>
+                {project.isPrivate && (
+                  <span title="Private repository" className="ml-auto flex items-center">
+                    <Lock className="size-3 shrink-0 opacity-70" />
+                  </span>
+                )}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

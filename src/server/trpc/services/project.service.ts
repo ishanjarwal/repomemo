@@ -6,7 +6,11 @@ import { prisma as defaultPrisma } from "@/lib/prisma";
 import { generateAnswer } from "@/server/ai/generate-answer";
 import { generateQueryEmbedding } from "@/server/ai/generate-query-embedding";
 import { PROJECT_SIZE } from "@/server/constants";
-import { octokit as defaultOctokit } from "@/server/github/client";
+import {
+  getOctokit,
+  octokit as defaultOctokit,
+} from "@/server/github/client";
+import { decryptSafe, encrypt } from "@/server/crypto";
 import { EVENTS, inngest } from "@/server/inngest/client";
 import {
   checkCredits,
@@ -156,11 +160,16 @@ export class ProjectService {
             "This repository is private. Please provide the Personal Access Token",
         });
       } else {
-        const check = await verifyPrivateRepo(input.personal_access_token);
+        const check = await verifyPrivateRepo(
+          input.personal_access_token,
+          createSession.owner,
+          createSession.repo,
+        );
         if (!check) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "Provided Personal Access Token is Invalid",
+            message:
+              "Provided Personal Access Token is invalid or does not have access to this repository",
           });
         }
       }
@@ -172,12 +181,17 @@ export class ProjectService {
     // check if the user has enough credits
     await checkCredits(credits, ctx.user.id);
 
+    const encryptedToken = input.personal_access_token
+      ? encrypt(input.personal_access_token.trim())
+      : null;
+
     const project = await ctx.prisma.project.create({
       data: {
         github_id: repoId,
         indexedCommitSha: treeSha,
         name: projectName,
         userId: ctx.user.id,
+        personalAccessToken: encryptedToken,
         job: { create: {} },
       },
       select: {
@@ -217,10 +231,17 @@ export class ProjectService {
         name: true,
         createdAt: true,
         updatedAt: true,
+        personalAccessToken: true,
       },
       orderBy: { createdAt: "desc" },
     });
-    return projects;
+    return projects.map((p) => ({
+      id: p.id,
+      name: p.name,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+      isPrivate: !!p.personalAccessToken,
+    }));
   }
 
   async getProject(ctx: ProtectedProcedureContext, input: { id: string }) {
@@ -238,6 +259,7 @@ export class ProjectService {
         createdAt: true,
         updatedAt: true,
         job: true,
+        personalAccessToken: true,
       },
     });
 
@@ -248,10 +270,13 @@ export class ProjectService {
       });
     }
 
+    const token = decryptSafe(project.personalAccessToken);
+    const octokit = getOctokit(token);
+
     const {
       data,
     }: { data: Endpoints["GET /repositories"]["response"]["data"][number] } =
-      await ctx.octokit.request("GET /repositories/{id}?ref={ref}", {
+      await octokit.request("GET /repositories/{id}?ref={ref}", {
         id: project.github_id,
         ref: project.indexedCommitSha,
       });
@@ -259,7 +284,13 @@ export class ProjectService {
     const { name, private: isPrivate, html_url, owner } = data;
 
     return {
-      ...project,
+      id: project.id,
+      name: project.name,
+      github_id: project.github_id,
+      indexedCommitSha: project.indexedCommitSha,
+      suggestedQueries: project.suggestedQueries,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
       job: undefined,
       jobStatus: project.job.status,
       repo: name as string,
@@ -344,9 +375,11 @@ export class ProjectService {
     type Repository = components["schemas"]["full-repository"];
 
     const { github_id, indexedCommitSha } = project;
+    const token = decryptSafe(project.personalAccessToken);
+    const octokit = getOctokit(token);
 
     const { data: repository }: { data: Repository } =
-      await ctx.octokit.request("GET /repositories/{id}", {
+      await octokit.request("GET /repositories/{id}", {
         id: github_id,
       });
 
@@ -379,20 +412,27 @@ export class ProjectService {
 
     const similar_files = await Promise.all(
       results.map(async (result) => {
-        const { data: code }: { data: GitHubFileContent } =
-          await ctx.octokit.request(
-            "GET /repos/{owner}/{repo}/contents/{source}?ref={ref}",
-            {
-              owner: username,
-              repo,
-              source: result.source,
-              ref: indexedCommitSha,
-            },
-          );
-        return {
-          source: result.source,
-          code: Buffer.from(code.content, "base64").toString("utf-8"),
-        };
+        try {
+          const { data: code }: { data: GitHubFileContent } =
+            await octokit.request(
+              "GET /repos/{owner}/{repo}/contents/{source}?ref={ref}",
+              {
+                owner: username,
+                repo,
+                source: result.source,
+                ref: indexedCommitSha,
+              },
+            );
+          return {
+            source: result.source,
+            code: Buffer.from(code.content, "base64").toString("utf-8"),
+          };
+        } catch (error) {
+          return {
+            source: result.source,
+            code: "",
+          };
+        }
       }),
     );
 
@@ -430,28 +470,35 @@ export class ProjectService {
       where: { id: answer.projectId },
     });
 
+    const token = decryptSafe(project?.personalAccessToken);
+    const octokit = getOctokit(token);
+
     const sources = await Promise.all(
       answer.sources.map(async (source) => {
-        const { data }: { data: components["schemas"]["content-file"] } =
-          await ctx.octokit.request(
-            "GET /repositories/{id}/contents/{path}?ref={ref}",
-            {
-              id: project!.github_id,
-              path: source,
-              ref: project?.indexedCommitSha,
-            },
-          );
+        try {
+          const { data }: { data: components["schemas"]["content-file"] } =
+            await octokit.request(
+              "GET /repositories/{id}/contents/{path}?ref={ref}",
+              {
+                id: project!.github_id,
+                path: source,
+                ref: project?.indexedCommitSha,
+              },
+            );
 
-        if (data && data.type === "file") {
-          const base64Content = data.content;
-          const decodedText = Buffer.from(base64Content, "base64").toString(
-            "utf-8",
-          );
+          if (data && data.type === "file") {
+            const base64Content = data.content;
+            const decodedText = Buffer.from(base64Content, "base64").toString(
+              "utf-8",
+            );
 
-          return { source, contents: decodedText };
+            return { source, contents: decodedText };
+          }
+
+          return { source, contents: null };
+        } catch (error) {
+          return { source, contents: null };
         }
-
-        return { source, contents: null };
       }),
     );
 

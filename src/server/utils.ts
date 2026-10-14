@@ -61,10 +61,18 @@ export const getProjectSize = (fileCount: number): ProjectSize => {
   return "large";
 };
 
-export async function verifyPrivateRepo(token: string) {
-  const octokit = new Octokit({ auth: token });
+export async function verifyPrivateRepo(
+  token: string,
+  owner?: string,
+  repo?: string,
+) {
+  const octokit = new Octokit({ auth: token.trim() });
   try {
-    const { data } = await octokit.rest.users.getAuthenticated();
+    if (owner && repo) {
+      await octokit.rest.repos.get({ owner, repo });
+      return true;
+    }
+    await octokit.rest.users.getAuthenticated();
     return true;
   } catch (error) {
     return false;
