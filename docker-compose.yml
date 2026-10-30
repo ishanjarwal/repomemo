@@ -1,24 +1,30 @@
-
 services:
-  postgres:
-    image: pgvector/pgvector:pg17
-    container_name: repomemo-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: repomemo@123
-      POSTGRES_DB: app_db
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_ORIGIN
+        - NEXT_PUBLIC_APP_NAME
+        - NEXT_PUBLIC_APP_VERSION
+        - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        - NEXT_PUBLIC_CLERK_SIGN_IN_URL
+        - NEXT_PUBLIC_CLERK_SIGN_UP_URL
+        - NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL
+        - NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL
+        - NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID
+        - NEXT_PUBLIC_GITHUB_CLIENT_ID
+    image: repomemo-app-img:1.0.0
+    container_name: repomemo-app
     ports:
-      - "5433:5432"
-    volumes:
-      - ./docker-data/postgres:/var/lib/postgresql/data
-
-  inngest:
-    image: inngest/inngest:latest
-    container_name: repomemo-inngest
-    restart: unless-stopped
-    command: inngest dev -u http://host.docker.internal:3000/api/inngest
-    ports:
-      - "8288:8288"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "3000:3000"
+    env_file:
+      - .env.production
+    networks:
+      - shared
+      
+networks:
+  shared:
+    name: infra-network
+    driver: bridge
+    external: true

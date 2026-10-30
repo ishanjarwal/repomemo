@@ -1,3 +1,4 @@
+import { env } from "@/env";
 import { eventType, Inngest, staticSchema } from "inngest";
 
 export const EVENTS = {
@@ -28,4 +29,10 @@ export const EVENTS = {
   }),
 };
 
-export const inngest = new Inngest({ id: "repomemo", isDev: true });
+export const inngest = new Inngest({
+  id: "repomemo",
+  isDev: env.NODE_ENV === "development" ? true : false,
+  baseUrl: env.INNGEST_BASE_URL,
+  eventKey: env.INNGEST_EVENT_KEY,
+  signingKey: env.INNGEST_SIGNING_KEY,
+});

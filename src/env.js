@@ -12,16 +12,24 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
 
+    CLERK_SECRET_KEY: z.string(),
+    CLERK_WEBHOOK_SIGNING_SECRET: z.string(),
+
     GITHUB_TOKEN: z.string(),
 
     GEMINI_API_KEY: z.string(),
     GEMINI_TEXT_MODEL: z.string(),
+
+    BETTER_AUTH_SECRET: z.string(),
+    BETTER_AUTH_URL: z.url(),
 
     GOOGLE_AUTH_CLIENT_SECRET: z.string(),
 
     GITHUB_CLIENT_SECRET: z.string(),
 
     RESEND_MAIL_SECRET: z.string(),
+
+    GOOGLE_APP_PASSWORD: z.string(),
 
     POLAR_ACCESS_TOKEN: z.string(),
     POLAR_ORGANIZATION_ID: z.string(),
@@ -38,6 +46,10 @@ export const env = createEnv({
     POLAR_FEATURE_USAGE_METER_ID: z.string(),
 
     REDIS_URL: z.string(),
+
+    INNGEST_BASE_URL: z.string(),
+    INNGEST_EVENT_KEY: z.string(),
+    INNGEST_SIGNING_KEY: z.string(),
   },
 
   /**
@@ -51,6 +63,12 @@ export const env = createEnv({
 
     NEXT_PUBLIC_APP_NAME: z.string(),
     NEXT_PUBLIC_APP_VERSION: z.string(),
+
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
+    NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string(),
+    NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string(),
+    NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL: z.string(),
+    NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL: z.string(),
 
     NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID: z.string(),
     NEXT_PUBLIC_GITHUB_CLIENT_ID: z.string(),
@@ -69,10 +87,25 @@ export const env = createEnv({
 
     NEXT_PUBLIC_ORIGIN: process.env.NEXT_PUBLIC_ORIGIN,
 
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+    CLERK_WEBHOOK_SIGNING_SECRET: process.env.CLERK_WEBHOOK_SIGNING_SECRET,
+
+    NEXT_PUBLIC_CLERK_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
+    NEXT_PUBLIC_CLERK_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
+    NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL:
+      process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL,
+    NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL:
+      process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL,
+
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,
 
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     GEMINI_TEXT_MODEL: process.env.GEMINI_TEXT_MODEL,
+
+    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
 
     NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID:
       process.env.NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID,
@@ -82,6 +115,8 @@ export const env = createEnv({
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
 
     RESEND_MAIL_SECRET: process.env.RESEND_MAIL_SECRET,
+
+    GOOGLE_APP_PASSWORD: process.env.GOOGLE_APP_PASSWORD,
 
     POLAR_ACCESS_TOKEN: process.env.POLAR_ACCESS_TOKEN,
     POLAR_ORGANIZATION_ID: process.env.POLAR_ORGANIZATION_ID,
@@ -98,6 +133,10 @@ export const env = createEnv({
     POLAR_FEATURE_USAGE_METER_ID: process.env.POLAR_FEATURE_USAGE_METER_ID,
 
     REDIS_URL: process.env.REDIS_URL,
+
+    INNGEST_BASE_URL: process.env.INNGEST_BASE_URL,
+    INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
+    INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

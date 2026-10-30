@@ -5,6 +5,6 @@ export const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "ishucodes@gmail.com",
-    pass: process.env.GOOGLE_APP_PASSWORD, // The 16-character App Password
+    pass: env.GOOGLE_APP_PASSWORD, // The 16-character App Password
   },
 });

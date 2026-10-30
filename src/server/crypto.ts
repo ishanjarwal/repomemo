@@ -1,13 +1,11 @@
+import { env } from "@/env";
 import crypto from "crypto";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12; // Recommended IV length for AES-GCM
 
 function getSecretKey(): Buffer {
-  const secret =
-    process.env.ENCRYPTION_SECRET ||
-    process.env.BETTER_AUTH_SECRET ||
-    "repomemo-fallback-secret-key-32b";
+  const secret = env.BETTER_AUTH_SECRET;
   return crypto.createHash("sha256").update(secret).digest();
 }
 
